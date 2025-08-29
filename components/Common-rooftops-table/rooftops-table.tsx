@@ -205,8 +205,9 @@ export function RooftopsTable({
       const potentialRooftops = Math.floor(Math.random() * 100) + 20 // 20 to 120 rooftops
       
       // Generate Payments Frequency
-      const paymentFrequencies = ["Monthly", "Quarterly", "Half Yearly", "Yearly"]
-      const paymentsFrequency = paymentFrequencies[idNum % paymentFrequencies.length]
+      type PaymentFrequency = 'Monthly' | 'Quarterly' | 'Half Yearly' | 'Yearly'
+      const paymentFrequencies: PaymentFrequency[] = ["Monthly", "Quarterly", "Half Yearly", "Yearly"]
+      const paymentsFrequency: PaymentFrequency = paymentFrequencies[idNum % paymentFrequencies.length]
       
       // Generate Lockin Period
       const lockinPeriods = ["6 Months", "1 Year", "18 Months", "2 Years", "3 Years"]
@@ -245,13 +246,13 @@ export function RooftopsTable({
         firstPaymentAmount: (() => {
           const baseAmount = data.arr * (Math.random() * 0.4 + 0.1) // 10-50% of ARR
           // Adjust based on payment frequency
-          const frequencyMultipliers = {
+          const frequencyMultipliers: Record<PaymentFrequency, number> = {
             'Monthly': baseAmount / 12,
             'Quarterly': baseAmount / 4,
             'Half Yearly': baseAmount / 2,
             'Yearly': baseAmount
           }
-          return Math.round(frequencyMultipliers[paymentsFrequency] || baseAmount / 12)
+          return Math.round(frequencyMultipliers[paymentsFrequency] ?? baseAmount / 12)
         })(),
         
         ageing: data.ageing, // Use actual ageing from rooftop data
