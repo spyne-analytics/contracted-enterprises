@@ -132,5 +132,18 @@ export const sampleRooftopData: RooftopData = {
     productSuite: ['Converse AI'],
     products: ['Image', '360 Spin'],
     tat: 2
+  },
+  'RTF011': {
+    name: 'No Data Example Dealership',
+    obProgress: 0,
+    arr: 0,
+    ageing: 0,
+    obPoc: {
+      name: 'N/A'
+    },
+    status: 'Contract Initiated',
+    productSuite: [],
+    products: [],
+    tat: 0
   }
 }

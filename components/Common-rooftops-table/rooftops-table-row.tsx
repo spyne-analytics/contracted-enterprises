@@ -89,13 +89,31 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
     </div>
   )
 
-  const formatARR = (arr: number) => {
-    if (arr >= 1000000) {
-      return `$${(arr / 1000000).toFixed(1)}M`
-    } else if (arr >= 1000) {
-      return `$${(arr / 1000).toFixed(0)}K`
+  const formatARR = (arr: number | string, isNoDataExample: boolean = false) => {
+    // Handle null values or dash
+    if (arr === "-" || arr === null || arr === "null" || arr === "Null" || arr === "NULL") {
+      return "-";
+    }
+    
+    // Convert to number if it's a string number
+    const numArr = typeof arr === 'string' ? parseFloat(arr) : arr;
+    
+    // Handle invalid numbers
+    if (isNaN(numArr)) {
+      return "-";
+    }
+    
+    // Handle no-data example case (0 ARR for the dummy row)
+    if (numArr === 0 && isNoDataExample) {
+      return "-";
+    }
+    
+    if (numArr >= 1000000) {
+      return `$${(numArr / 1000000).toFixed(1)}M`
+    } else if (numArr >= 1000) {
+      return `$${(numArr / 1000).toFixed(0)}K`
     } else {
-      return `$${arr}`
+      return `$${numArr}`
     }
   }
 
@@ -111,6 +129,8 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
         return "bg-red-100 text-red-800"
       case "Onboarding":
         return "bg-green-100 text-green-800"
+      case "Drop Off":
+        return "bg-red-500 text-white" // Bright red for Drop Off
       case "Drop-off":
       case "Drop-Off":
         return "bg-gray-200 text-gray-800"
@@ -131,6 +151,8 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
         return "bg-yellow-100 text-yellow-800"
       case "SH Call Done":
         return "bg-green-100 text-green-800"
+      case "Drop Off":
+        return "bg-red-100 text-red-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -148,7 +170,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
 
     // Get current stage index
     const currentStageIndex = stageSequence.indexOf(stage)
-    const currentStage = currentStageIndex >= 0 ? stage : "Contract Initiated"
+    const currentStage = currentStageIndex >= 0 ? stage : (stage === "Drop Off" ? "Drop Off" : "Contract Initiated")
 
     const handleStageChange = (newStage: string) => {
       const updates: any = { status: newStage }
@@ -175,14 +197,23 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
         return [currentStage] // Only show current stage, can't progress
       }
       
+      let availableStages: string[] = []
+      
+      // If already at Drop Off, only show Drop Off
+      if (currentStage === "Drop Off") {
+        return [currentStage]
+      }
+      
       // Can only move to next stage or stay current
       if (currentIndex === stageSequence.length - 1) {
         // If at last stage, only show current stage
-        return [currentStage]
+        availableStages = [currentStage]
       } else {
         // Show current stage and next stage
-        return [currentStage, stageSequence[currentIndex + 1]]
+        availableStages = [currentStage, stageSequence[currentIndex + 1]]
       }
+      
+      return availableStages
     }
 
     return (
@@ -395,7 +426,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
       } else {
         options = [subStage]
       }
-      if (!options.includes("SH Call Cancelled")) options.push("SH Call Cancelled")
+      if (!options.includes("Drop Off")) options.push("Drop Off")
       return options
     }
 
@@ -411,7 +442,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
         setPendingSubStage(newSubStage)
         setShowDoneConfirm(true)
         setIsOpen(false)
-      } else if (newSubStage === "SH Call Cancelled") {
+      } else if (newSubStage === "Drop Off") {
         setPendingSubStage(newSubStage)
         setShowCancelConfirm(true)
         setIsOpen(false)
@@ -1116,15 +1147,15 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
           </div>
         )}
 
-        {/* Confirmation modal for SH Call Cancelled */}
+        {/* Confirmation modal for Drop Off */}
         {showCancelConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Cancel SH Call?</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Mark as Drop Off?</h3>
               </div>
               <div className="px-6 py-4">
-                <p className="text-sm text-gray-700">This will move the enterprise Stage to Drop-off. Are you sure?</p>
+                <p className="text-sm text-gray-700">This will move the enterprise Stage to Drop Off. Are you sure?</p>
               </div>
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
@@ -1134,10 +1165,10 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
                   No
                 </button>
                 <button
-                  onClick={() => { onRooftopUpdate(rooftopId, { subStage: 'SH Call Cancelled', status: 'Drop-off' }); setShowCancelConfirm(false); setPendingSubStage(null) }}
+                  onClick={() => { onRooftopUpdate(rooftopId, { subStage: 'Drop Off', status: 'Drop Off' }); setShowCancelConfirm(false); setPendingSubStage(null) }}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  Yes, Cancel
+                  Yes, Drop Off
                 </button>
               </div>
             </div>
@@ -1158,29 +1189,9 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
       className="border-b border-gray-100 hover:bg-gray-50/50 cursor-pointer group"
       onClick={() => onRooftopSelect(data.id)}
     >
-      {/* Group Dealer */}
-      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px] sticky left-0 z-10 bg-white group-hover:bg-gray-50">
+      {/* Enterprise Name - Fixed width */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 w-[282px] sticky left-0 z-10 bg-white group-hover:bg-gray-50" style={{ width: "282px !important", minWidth: "282px", maxWidth: "282px" }}>
         <span className="text-sm text-gray-900">{data.groupDealer}</span>
-      </td>
-
-      {/* AE POC */}
-      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F0EDF4] text-[#6A5F79] text-xs rounded-md font-medium h-[22px]">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-[#6A5F79] w-3 h-3">
-            <path d="M8 8C10.21 8 12 6.21 12 4C12 1.79 10.21 0 8 0C5.79 0 4 1.79 4 4C4 6.21 5.79 8 8 8ZM8 10C5.33 10 0 11.34 0 14V16H16V14C16 11.34 10.67 10 8 10Z" fill="currentColor"/>
-          </svg>
-          {data.accountExecutivePOC}
-        </span>
-      </td>
-
-      {/* Finance POC */}
-      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F0EDF4] text-[#6A5F79] text-xs rounded-md font-medium h-[22px]">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-[#6A5F79] w-3 h-3">
-            <path d="M8 8C10.21 8 12 6.21 12 4C12 1.79 10.21 0 8 0C5.79 0 4 1.79 4 4C4 6.21 5.79 8 8 8ZM8 10C5.33 10 0 11.34 0 14V16H16V14C16 11.34 10.67 10 8 10Z" fill="currentColor"/>
-          </svg>
-          {data.financePOC}
-        </span>
       </td>
 
       {/* Stage */}
@@ -1191,6 +1202,20 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
       {/* Sub Stage */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
         <SubStageDropdown subStage={data.subStage} rooftopId={data.id} currentStage={data.stage} />
+      </td>
+
+      {/* Type */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center ${getTypeBadgeStyles(data.type)}`}>
+          {data.type}
+        </span>
+      </td>
+
+      {/* Subtype */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center ${getSubTypeBadgeStyles(data.subType)}`}>
+          {data.subType}
+        </span>
       </td>
 
       {/* Product */}
@@ -1221,32 +1246,26 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
         </div>
       </td>
 
-      {/* Platform */}
-      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center bg-gray-100 text-gray-800 whitespace-nowrap">
-          {data.platform}
-        </span>
-      </td>
-
-      {/* Type */}
-      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center ${getTypeBadgeStyles(data.type)}`}>
-          {data.type}
-        </span>
-      </td>
-
-      {/* Sub Type */}
-      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center ${getSubTypeBadgeStyles(data.subType)}`}>
-          {data.subType}
-        </span>
-      </td>
-
       {/* Region */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[130px]">
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center justify-center min-w-max whitespace-nowrap ${getRegionBadgeStyles(data.region)}`}>
           {data.region}
         </span>
+      </td>
+
+      {/* Country - New column */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className="text-sm text-gray-900">{data.country || 'N/A'}</span>
+      </td>
+
+      {/* State - New column */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className="text-sm text-gray-900">{data.state || 'N/A'}</span>
+      </td>
+
+      {/* City - New column */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className="text-sm text-gray-900">{data.city || 'N/A'}</span>
       </td>
 
       {/* Contracted Date */}
@@ -1261,19 +1280,19 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
 
       {/* Contracted ARR */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{formatARR(data.contractedARR)}</span>
+        <span className="text-sm text-gray-900">{formatARR(data.contractedARR, data.name === 'No Data Example Dealership')}</span>
       </td>
 
-      {/* VINs Alloted */}
+      {/* VINs Contracted */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center bg-gray-100 text-gray-800 whitespace-nowrap">
-          {data.vinsAlloted.toLocaleString()}
+          {data.vinsAlloted === "-" ? "-" : data.vinsAlloted.toLocaleString()}
         </span>
       </td>
 
       {/* One Time Purchase */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{formatARR(data.oneTimePurchase)}</span>
+        <span className="text-sm text-gray-900">{data.oneTimePurchase === "-" ? "-" : formatARR(data.oneTimePurchase)}</span>
       </td>
 
       {/* Addons */}
@@ -1292,24 +1311,34 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
 
       {/* Contracted Rooftops */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{(data.contractedRooftops || 0).toLocaleString()}</span>
+        <span className="text-sm text-gray-900">{data.contractedRooftops === "-" ? "-" : (data.contractedRooftops || 0).toLocaleString()}</span>
       </td>
 
       {/* Potential Rooftops */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{(data.potentialRooftops || 0).toLocaleString()}</span>
+        <span className="text-sm text-gray-900">{data.potentialRooftops === "-" ? "-" : (data.potentialRooftops || 0).toLocaleString()}</span>
       </td>
 
-      {/* Payments Frequency */}
+      {/* Payment Frequency */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap bg-gray-100 text-gray-800">
           {data.paymentsFrequency}
         </span>
       </td>
 
-      {/* Lockin Period */}
+      {/* Lock In Period */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
         <span className="text-sm text-gray-900">{data.lockinPeriod}</span>
+      </td>
+
+      {/* AE POCs */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F0EDF4] text-[#6A5F79] text-xs rounded-md font-medium h-[22px]">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-[#6A5F79] w-3 h-3">
+            <path d="M8 8C10.21 8 12 6.21 12 4C12 1.79 10.21 0 8 0C5.79 0 4 1.79 4 4C4 6.21 5.79 8 8 8ZM8 10C5.33 10 0 11.34 0 14V16H16V14C16 11.34 10.67 10 8 10Z" fill="currentColor"/>
+          </svg>
+          {data.accountExecutivePOC}
+        </span>
       </td>
 
       {/* First Payment Date */}
@@ -1319,12 +1348,22 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
 
       {/* First Payment Amount */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{formatARR(data.firstPaymentAmount)}</span>
+        <span className="text-sm text-gray-900">{data.firstPaymentAmount === "-" ? "-" : formatARR(data.firstPaymentAmount)}</span>
       </td>
 
       {/* Tax ID */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
         <span className="text-sm text-gray-900">{data.taxID}</span>
+      </td>
+
+      {/* Finance POC */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F0EDF4] text-[#6A5F79] text-xs rounded-md font-medium h-[22px]">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-[#6A5F79] w-3 h-3">
+            <path d="M8 8C10.21 8 12 6.21 12 4C12 1.79 10.21 0 8 0C5.79 0 4 1.79 4 4C4 6.21 5.79 8 8 8ZM8 10C5.33 10 0 11.34 0 14V16H16V14C16 11.34 10.67 10 8 10Z" fill="currentColor"/>
+          </svg>
+          {data.financePOC}
+        </span>
       </td>
 
       {/* T&Cs Edited */}
@@ -1348,7 +1387,16 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
           {data.contractSource}
         </span>
       </td>
-      {/* Removed Team ID column */}
+
+      {/* Contract Link - New column */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className="text-sm text-blue-600 underline cursor-pointer">{data.contractLink || 'N/A'}</span>
+      </td>
+
+      {/* Team ID */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className="text-sm text-gray-700">{data.teamId}</span>
+      </td>
 
       {/* Enterprise ID */}
       <td className="px-3 py-2 h-9 min-w-[180px]">

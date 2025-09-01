@@ -166,6 +166,14 @@ export function RooftopsTable({
 
   // Convert existing rooftop data to new format
   const convertedData = useMemo((): RooftopsData[] => {
+    // Helper function to handle null values
+    const handleNullValue = (value: any, fallback: any = "-") => {
+      if (value === null || value === "null" || value === "Null" || value === "NULL") {
+        return fallback;
+      }
+      return value;
+    };
+
     return Object.entries(rooftopData).map(([id, data], index) => {
       const idNum = Number.parseInt(id.slice(-3)) || 1
       
@@ -215,35 +223,38 @@ export function RooftopsTable({
       
       return {
         id,
-        groupDealer: groupDealerOptions[idNum % groupDealerOptions.length],
+        groupDealer: data.name === 'No Data Example Dealership' ? data.name : groupDealerOptions[idNum % groupDealerOptions.length],
         name: data.name,
         logo: "/placeholder-logo.png",
         obProgress: data.obProgress, // Use actual progress from rooftop data
         arr: data.arr, // Use actual ARR from rooftop data
-        contractedARR: data.arr, // Use actual ARR as contracted ARR
-        vinsAlloted: vinsAlloted,
-        oneTimePurchase: oneTimePurchase,
-        addons: addons,
-        contractedRooftops: contractedRooftops,
-        potentialRooftops: potentialRooftops,
-        paymentsFrequency: paymentsFrequency,
-        lockinPeriod: lockinPeriod,
+        contractedARR: data.name === 'No Data Example Dealership' ? 0 : (handleNullValue(data.arr, 0)), // Use actual ARR as contracted ARR
+        vinsAlloted: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(vinsAlloted, "-"),
+        oneTimePurchase: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(oneTimePurchase, "-"),
+        addons: data.name === 'No Data Example Dealership' ? [] : addons,
+        contractedRooftops: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(contractedRooftops, "-"),
+        potentialRooftops: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(potentialRooftops, "-"),
+        paymentsFrequency: data.name === 'No Data Example Dealership' ? "N/A" as PaymentFrequency : paymentsFrequency,
+        lockinPeriod: data.name === 'No Data Example Dealership' ? "N/A" : lockinPeriod,
         
         // Generate first payment date (1-3 months after contracted date)
         firstPaymentDate: (() => {
+          if (data.name === 'No Data Example Dealership') return "-"
           const contractDate = new Date(formattedDate)
           const firstPaymentDate = new Date(contractDate)
           const daysToAdd = Math.floor(Math.random() * 90) + 30 // 30-120 days after contract
           firstPaymentDate.setDate(firstPaymentDate.getDate() + daysToAdd)
-          return firstPaymentDate.toLocaleDateString('en-US', { 
+          const dateString = firstPaymentDate.toLocaleDateString('en-US', { 
             year: 'numeric', 
             month: 'short', 
             day: 'numeric' 
           })
+          return handleNullValue(dateString, "-")
         })(),
         
         // Generate first payment amount (10-50% of contracted ARR divided by payment frequency)
         firstPaymentAmount: (() => {
+          if (data.name === 'No Data Example Dealership') return "-"
           const baseAmount = data.arr * (Math.random() * 0.4 + 0.1) // 10-50% of ARR
           // Adjust based on payment frequency
           const frequencyMultipliers: Record<PaymentFrequency, number> = {
@@ -252,29 +263,34 @@ export function RooftopsTable({
             'Half Yearly': baseAmount / 2,
             'Yearly': baseAmount
           }
-          return Math.round(frequencyMultipliers[paymentsFrequency] ?? baseAmount / 12)
+          const amount = Math.round(frequencyMultipliers[paymentsFrequency] ?? baseAmount / 12)
+          return handleNullValue(amount, "-")
         })(),
         
         ageing: data.ageing, // Use actual ageing from rooftop data
-        accountExecutivePOC: data.obPoc.name, // Use actual POC name as Account Executive POC
+        accountExecutivePOC: data.name === 'No Data Example Dealership' ? "N/A" : handleNullValue(data.obPoc.name, "-"), // Use actual POC name as Account Executive POC
         financePOC: (() => {
+          if (data.name === 'No Data Example Dealership') return "N/A"
           const names = [
             "Emily Rodriguez", "David Chen", "Sarah Johnson", "Michael Brown", "Jessica Lee",
             "Robert Davis", "Amanda Wilson", "James Taylor", "Lisa Anderson", "Kevin White",
             "Rachel Garcia", "Christopher Martinez", "Jennifer Thompson", "Daniel Harris",
             "Nicole Clark", "Anthony Lewis", "Stephanie Walker", "Matthew Hall", "Ashley Young"
           ]
-          return names[idNum % names.length]
+          const selectedName = names[idNum % names.length]
+          return handleNullValue(selectedName, "-")
         })(), // Random finance POC name
         
         // Generate Tax ID (realistic format)
         taxID: (() => {
+          if (data.name === 'No Data Example Dealership') return "N/A"
           const formats = [
             `TAX-${String(idNum).padStart(6, '0')}`,
             `${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 9000 + 1000)}-${Math.floor(Math.random() * 900 + 100)}`,
             `EIN-${Math.floor(Math.random() * 90 + 10)}-${Math.floor(Math.random() * 9000000 + 1000000)}`
           ]
-          return formats[idNum % formats.length]
+          const selectedFormat = formats[idNum % formats.length]
+          return handleNullValue(selectedFormat, "-")
         })(),
         
         // Generate T&Cs Edited status (70% No, 30% Yes for realistic distribution)
@@ -291,7 +307,9 @@ export function RooftopsTable({
             return data.subStage
           }
           // Sub stage logic based on stage
-          if (stage === "Contracted" || stage === "Onboarding") {
+          if (stage === "Drop Off") {
+            return "Drop Off" // Drop Off stage has Drop Off sub stage
+          } else if (stage === "Contracted" || stage === "Onboarding") {
             return "SH Call Pending" // Default for contracted stage
           } else {
             return "Inactive" // For all pre-contracted stages
@@ -300,15 +318,23 @@ export function RooftopsTable({
         type: typeOptions[idNum % typeOptions.length],
         subType: subTypeOptions[idNum % subTypeOptions.length],
         region: regionOptions[idNum % regionOptions.length],
-        contractedDate: formattedDate,
-        contractPeriod: contractPeriod,
+        contractedDate: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(formattedDate, "-"),
+        contractPeriod: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(contractPeriod, "-"),
         sla: idNum % 4 === 0 
           ? { status: "Breached", daysBreached: Math.floor(Math.random() * 10) + 1 }
           : { status: "On Track" },
         teamId: `${11024210 + index}`,
         enterpriseId: `${11024210 + index}`,
-        products: data.productSuite.length > 0 ? data.productSuite : ["Studio AI"],
-        media: data.products.length > 0 ? data.products : ["Image"], // Use actual media from rooftop data
+        products: (() => {
+          if (data.name === 'No Data Example Dealership') return ["N/A"]
+          const products = data.productSuite.length > 0 ? data.productSuite : ["Studio AI"]
+          return products.map(product => handleNullValue(product, "-"))
+        })(),
+        media: (() => {
+          if (data.name === 'No Data Example Dealership') return ["N/A"]
+          const media = data.products.length > 0 ? data.products : ["Image"]
+          return media.map(item => handleNullValue(item, "-"))
+        })(), // Use actual media from rooftop data
         tat: data.tat, // Use actual TAT from rooftop data
         platform: platformOptions[idNum % platformOptions.length] // Map to platform options
       }
@@ -377,7 +403,10 @@ export function RooftopsTable({
             <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
               <span className="text-sm text-gray-600">Total Contracted ARR</span>
               <span className="text-sm font-semibold text-purple-600">
-                ${(filteredData.reduce((sum, data) => sum + data.contractedARR, 0) / 1000000).toFixed(2)} M
+                ${(filteredData.reduce((sum, data) => {
+                  const arr = typeof data.contractedARR === 'number' ? data.contractedARR : 0;
+                  return sum + arr;
+                }, 0) / 1000000).toFixed(2)} M
               </span>
             </div>
           </div>
