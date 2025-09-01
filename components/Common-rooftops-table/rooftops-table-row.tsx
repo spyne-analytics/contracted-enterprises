@@ -426,7 +426,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
       } else {
         options = [subStage]
       }
-      if (!options.includes("Drop Off")) options.push("Drop Off")
+      if (!options.includes("Drop-Off")) options.push("Drop-Off")
       return options
     }
 
