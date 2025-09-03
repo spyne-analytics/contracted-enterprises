@@ -7,7 +7,7 @@ interface FilterValues {
   stage: string
   accountExecutivePOC: string
   financePOC: string
-  media: string
+  plan: string
   product: string
   type: string
   subType: string
@@ -78,10 +78,37 @@ const groupDealerOptions = [
   "Larry H. Miller"
 ]
 
+const gdNameOptions = [
+  "AutoNation USA",
+  "AutoNation Direct",
+  "Penske Premier",
+  "Penske Elite",
+  "Lithia Springs",
+  "Lithia Motors Inc",
+  "Group 1 Holdings",
+  "Group 1 Enterprises",
+  "Sonic Drive",
+  "Sonic Automotive Group",
+  "Asbury Park",
+  "Asbury Holdings",
+  "CarMax Solutions",
+  "CarMax Auto",
+  "Hendrick Motors",
+  "Hendrick Dealerships",
+  "Van Tuyl Auto",
+  "Van Tuyl Holdings",
+  "Miller Automotive",
+  "Larry H. Miller Group"
+]
+
+const planOptions = ["Essential", "Growth", "Enterprise", "Comprehensive"]
+const mediaOptions = ["Images", "360 Spin", "Video Tour"]
+
 // Adapted data structure for the new table
 interface RooftopsData {
   id: string
   groupDealer: string
+  gdName: string
   name: string
   logo: string
   obProgress: number
@@ -116,6 +143,7 @@ interface RooftopsData {
   teamId: string
   enterpriseId: string
   products: string[]
+  plan: string[]
   media: string[]
   tat: number
   platform: string
@@ -137,11 +165,18 @@ export function RooftopsTable({
   onSearchChange 
 }: RooftopsTableProps) {
   const [searchValue, setSearchValue] = useState(searchTerm)
+  const [selectedEnterprises, setSelectedEnterprises] = useState<Set<string>>(new Set())
+  const [bulkActionConfirm, setBulkActionConfirm] = useState<{
+    show: boolean
+    action: 'stage' | 'substage'
+    value: string
+    count: number
+  } | null>(null)
   const [filterValues, setFilterValues] = useState<FilterValues>({
     stage: "All Stage",
     accountExecutivePOC: "All AE POC",
     financePOC: "All Finance POC",
-    media: "All Media",
+    plan: "All Plan",
     product: "All Product",
     type: "All Type",
     subType: "All Sub Type",
@@ -162,6 +197,16 @@ export function RooftopsTable({
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
     onSearchChange?.(value)
+  }
+
+  const handleSelectEnterprise = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedEnterprises)
+    if (checked) {
+      newSelected.add(id)
+    } else {
+      newSelected.delete(id)
+    }
+    setSelectedEnterprises(newSelected)
   }
 
   // Convert existing rooftop data to new format
@@ -224,6 +269,7 @@ export function RooftopsTable({
       return {
         id,
         groupDealer: data.name === 'No Data Example Dealership' ? data.name : groupDealerOptions[idNum % groupDealerOptions.length],
+        gdName: data.name === 'No Data Example Dealership' ? "N/A" : gdNameOptions[idNum % gdNameOptions.length],
         name: data.name,
         logo: "/placeholder-logo.png",
         obProgress: data.obProgress, // Use actual progress from rooftop data
@@ -330,11 +376,23 @@ export function RooftopsTable({
           const products = data.productSuite.length > 0 ? data.productSuite : ["Studio AI"]
           return products.map(product => handleNullValue(product, "-"))
         })(),
+        plan: (() => {
+          if (data.name === 'No Data Example Dealership') return ["N/A"]
+          // Assign a plan based on index for variety
+          const planIndex = idNum % planOptions.length
+          return [planOptions[planIndex]]
+        })(),
         media: (() => {
           if (data.name === 'No Data Example Dealership') return ["N/A"]
-          const media = data.products.length > 0 ? data.products : ["Image"]
-          return media.map(item => handleNullValue(item, "-"))
-        })(), // Use actual media from rooftop data
+          // Use actual media from rooftop data, fallback to a subset of media options
+          const availableMedia = data.products.length > 0 ? data.products : ["Images"]
+          return availableMedia.map(item => {
+            // Map the existing product types to media types
+            if (item.includes("360")) return "360 Spin"
+            if (item.includes("Video") || item.includes("video")) return "Video Tour"
+            return "Images"
+          })
+        })(),
         tat: data.tat, // Use actual TAT from rooftop data
         platform: platformOptions[idNum % platformOptions.length] // Map to platform options
       }
@@ -351,13 +409,13 @@ export function RooftopsTable({
       const matchesStage = filterValues.stage === "All Stage" || item.stage === filterValues.stage
       const matchesAccountExecutivePOC = filterValues.accountExecutivePOC === "All AE POC" || item.accountExecutivePOC === filterValues.accountExecutivePOC
       const matchesFinancePOC = filterValues.financePOC === "All Finance POC" || item.financePOC === filterValues.financePOC
-      const matchesMedia = filterValues.media === "All Media" || item.media.includes(filterValues.media)
+      const matchesPlan = filterValues.plan === "All Plan" || (item.plan && item.plan.includes(filterValues.plan))
       const matchesProduct = filterValues.product === "All Product" || item.products.includes(filterValues.product)
       const matchesType = filterValues.type === "All Type" || item.type === filterValues.type
       const matchesSubType = filterValues.subType === "All Sub Type" || item.subType === filterValues.subType
       const matchesRegion = filterValues.region === "All Region" || item.region === filterValues.region
 
-      return matchesSearch && matchesStage && matchesAccountExecutivePOC && matchesFinancePOC && matchesMedia && 
+      return matchesSearch && matchesStage && matchesAccountExecutivePOC && matchesFinancePOC && matchesPlan && 
              matchesProduct && matchesType && matchesSubType && matchesRegion
     })
 
@@ -379,6 +437,70 @@ export function RooftopsTable({
 
     return filtered
   }, [convertedData, searchValue, filterValues, sortField, sortDirection])
+
+  // Selection handlers and state (after filteredData is defined)
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = filteredData.map(item => item.id)
+      setSelectedEnterprises(new Set(allIds))
+    } else {
+      setSelectedEnterprises(new Set())
+    }
+  }
+
+  const isAllSelected = filteredData.length > 0 && selectedEnterprises.size === filteredData.length
+  const isIndeterminate = selectedEnterprises.size > 0 && selectedEnterprises.size < filteredData.length
+
+  // Bulk action handlers
+  const handleBulkStageChange = (newStage: string) => {
+    if (!newStage || selectedEnterprises.size === 0) return
+    
+    setBulkActionConfirm({
+      show: true,
+      action: 'stage',
+      value: newStage,
+      count: selectedEnterprises.size
+    })
+  }
+
+  const handleBulkSubStageChange = (newSubStage: string) => {
+    if (!newSubStage || selectedEnterprises.size === 0) return
+    
+    setBulkActionConfirm({
+      show: true,
+      action: 'substage',
+      value: newSubStage,
+      count: selectedEnterprises.size
+    })
+  }
+
+  const confirmBulkAction = () => {
+    if (!bulkActionConfirm) return
+    
+    selectedEnterprises.forEach(enterpriseId => {
+      let updates: any = {}
+      
+      if (bulkActionConfirm.action === 'stage') {
+        updates.status = bulkActionConfirm.value
+        // Handle special case for Drop Off
+        if (bulkActionConfirm.value === "Drop Off") {
+          updates.subStage = "Drop Off"
+        }
+      } else {
+        updates.subStage = bulkActionConfirm.value
+        // Handle special case for Drop Off sub-stage
+        if (bulkActionConfirm.value === "Drop Off") {
+          updates.status = "Drop Off"
+        }
+      }
+      
+      onRooftopUpdate(enterpriseId, updates)
+    })
+    
+    // Clear selection and hide modal
+    setSelectedEnterprises(new Set())
+    setBulkActionConfirm(null)
+  }
 
   return (
     <div className="w-full">
@@ -412,6 +534,74 @@ export function RooftopsTable({
           </div>
         </div>
         
+        {/* Bulk Actions Section - Show only when enterprises are selected */}
+        {selectedEnterprises.size > 0 && (
+          <div className="border-b border-gray-200 px-3 py-2">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">
+                  {selectedEnterprises.size} enterprise{selectedEnterprises.size !== 1 ? 's' : ''} selected
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600">Bulk Actions:</span>
+                
+                {/* Stage Dropdown */}
+                <div className="relative">
+                  <select
+                    onChange={(e) => handleBulkStageChange(e.target.value)}
+                    className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Change Stage</option>
+                    <option value="Contract Initiated">Contract Initiated</option>
+                    <option value="Contract Sent">Contract Sent</option>
+                    <option value="Contract Signed">Contract Signed</option>
+                    <option value="Contracted">Contracted</option>
+                    <option value="Onboarding">Onboarding</option>
+                    <option value="Drop Off">Drop Off</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Sub-Stage Dropdown */}
+                <div className="relative">
+                  <select
+                    onChange={(e) => handleBulkSubStageChange(e.target.value)}
+                    className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Change Sub-Stage</option>
+                    <option value="SH Call Pending">SH Call Pending</option>
+                    <option value="SH Call Scheduled">SH Call Scheduled</option>
+                    <option value="SH Call Completed">SH Call Completed</option>
+                    <option value="Drop Off">Drop Off</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Clear Selection Button */}
+                <button
+                  onClick={() => setSelectedEnterprises(new Set())}
+                  className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Clear Selection
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Horizontally scrollable table container */}
         <div className="overflow-x-auto min-h-[500px]">
           <table className="w-full" style={{ minWidth: "1400px" }}>
@@ -420,6 +610,9 @@ export function RooftopsTable({
               sortField={sortField}
               sortDirection={sortDirection}
               onSort={handleSort}
+              isAllSelected={isAllSelected}
+              isIndeterminate={isIndeterminate}
+              onSelectAll={handleSelectAll}
             />
             <tbody>
               {filteredData.length === 0 ? (
@@ -432,13 +625,50 @@ export function RooftopsTable({
                 </tr>
               ) : (
                 filteredData.map((row) => (
-                  <RooftopsTableRow key={row.id} data={row} onRooftopSelect={onRooftopSelect} onRooftopUpdate={onRooftopUpdate} />
+                  <RooftopsTableRow 
+                    key={row.id} 
+                    data={row} 
+                    onRooftopSelect={onRooftopSelect} 
+                    onRooftopUpdate={onRooftopUpdate}
+                    isSelected={selectedEnterprises.has(row.id)}
+                    onSelectEnterprise={handleSelectEnterprise}
+                  />
                 ))
               )}
             </tbody>
           </table>
         </div>
       </div>
+      
+      {/* Bulk Action Confirmation Modal */}
+      {bulkActionConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Confirm Bulk {bulkActionConfirm.action === 'stage' ? 'Stage' : 'Sub-Stage'} Change
+            </h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to change the {bulkActionConfirm.action === 'stage' ? 'stage' : 'sub-stage'} to 
+              <span className="font-medium text-gray-900"> "{bulkActionConfirm.value}"</span> for 
+              <span className="font-medium text-gray-900"> {bulkActionConfirm.count}</span> selected enterprise{bulkActionConfirm.count !== 1 ? 's' : ''}?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setBulkActionConfirm(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBulkAction}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Confirm Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

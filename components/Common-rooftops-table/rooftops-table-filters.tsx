@@ -6,7 +6,7 @@ interface FilterValues {
   stage: string
   accountExecutivePOC: string
   financePOC: string
-  media: string
+  plan: string
   product: string
   type: string
   subType: string
@@ -36,7 +36,7 @@ export function RooftopsTableFilters({
     stage: ["All Stage", "Contracted", "Onboarding"],
     accountExecutivePOC: ["All AE POC", "John Doe", "Jane Smith", "Mike Johnson", "Sarah Wilson"],
     financePOC: ["All Finance POC", "Emily Rodriguez", "David Chen", "Sarah Johnson", "Michael Brown"],
-    media: ["All Media", "Image", "360 Spin", "Video Tour"],
+    plan: ["All Plan", "Image", "360 Spin", "Video Tour"],
     product: ["All Product", "Studio AI", "Converse AI"],
     type: ["All Type", "Franchise dealer", "Independent Dealer"],
     subType: ["All Sub Type", "Franchise dealer", "Independent Dealer"],
@@ -75,7 +75,7 @@ export function RooftopsTableFilters({
       stage: "All Stage",
       accountExecutivePOC: "All AE POC",
       financePOC: "All Finance POC",
-      media: "All Media",
+      plan: "All Plan",
       product: "All Product",
       type: "All Type",
       subType: "All Sub Type",
@@ -230,25 +230,25 @@ export function RooftopsTableFilters({
               </div>
             </div>
 
-            {/* Media Filter */}
+            {/* Studio AI Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Media</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Studio AI</label>
               <div className="relative">
                 <button
-                  onClick={() => setActiveDropdown(activeDropdown === 'media' ? null : 'media')}
+                  onClick={() => setActiveDropdown(activeDropdown === 'plan' ? null : 'plan')}
                   className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50"
                 >
-                  <span>{filterValues.media}</span>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'media' ? 'rotate-180' : ''}`}>
+                  <span>{filterValues.plan}</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'plan' ? 'rotate-180' : ''}`}>
                     <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
-                {activeDropdown === 'media' && (
+                {activeDropdown === 'plan' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                    {filterOptions.media.map((option) => (
+                    {filterOptions.plan.map((option) => (
                       <button
                         key={option}
-                        onClick={() => handleFilterChange('media', option)}
+                        onClick={() => handleFilterChange('plan', option)}
                         className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
                       >
                         {option}
