@@ -1255,17 +1255,17 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
 
       {/* Country - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{data.country || 'N/A'}</span>
+        <span className="text-sm text-gray-900">{(data as any).country || 'N/A'}</span>
       </td>
 
       {/* State - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{data.state || 'N/A'}</span>
+        <span className="text-sm text-gray-900">{(data as any).state || 'N/A'}</span>
       </td>
 
       {/* City - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{data.city || 'N/A'}</span>
+        <span className="text-sm text-gray-900">{(data as any).city || 'N/A'}</span>
       </td>
 
       {/* Contracted Date */}
@@ -1286,13 +1286,13 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
       {/* VINs Contracted */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center bg-gray-100 text-gray-800 whitespace-nowrap">
-          {data.vinsAlloted === "-" ? "-" : data.vinsAlloted.toLocaleString()}
+          {typeof data.vinsAlloted === 'string' ? data.vinsAlloted : data.vinsAlloted.toLocaleString()}
         </span>
       </td>
 
       {/* One Time Purchase */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.oneTimePurchase === "-" ? "-" : formatARR(data.oneTimePurchase)}</span>
+        <span className="text-sm text-gray-900">{typeof data.oneTimePurchase === 'string' ? data.oneTimePurchase : formatARR(data.oneTimePurchase)}</span>
       </td>
 
       {/* Addons */}
@@ -1311,12 +1311,12 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
 
       {/* Contracted Rooftops */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.contractedRooftops === "-" ? "-" : (data.contractedRooftops || 0).toLocaleString()}</span>
+        <span className="text-sm text-gray-900">{typeof data.contractedRooftops === 'string' ? data.contractedRooftops : (data.contractedRooftops || 0).toLocaleString()}</span>
       </td>
 
       {/* Potential Rooftops */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.potentialRooftops === "-" ? "-" : (data.potentialRooftops || 0).toLocaleString()}</span>
+        <span className="text-sm text-gray-900">{typeof data.potentialRooftops === 'string' ? data.potentialRooftops : (data.potentialRooftops || 0).toLocaleString()}</span>
       </td>
 
       {/* Payment Frequency */}
@@ -1348,7 +1348,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
 
       {/* First Payment Amount */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.firstPaymentAmount === "-" ? "-" : formatARR(data.firstPaymentAmount)}</span>
+        <span className="text-sm text-gray-900">{typeof data.firstPaymentAmount === 'string' ? data.firstPaymentAmount : formatARR(data.firstPaymentAmount)}</span>
       </td>
 
       {/* Tax ID */}
@@ -1390,7 +1390,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate }: Roo
 
       {/* Contract Link - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-blue-600 underline cursor-pointer">{data.contractLink || 'N/A'}</span>
+        <span className="text-sm text-blue-600 underline cursor-pointer">{(data as any).contractLink || 'N/A'}</span>
       </td>
 
       {/* Team ID */}
