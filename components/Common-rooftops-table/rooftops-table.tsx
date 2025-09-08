@@ -129,15 +129,15 @@ interface RooftopsData {
   obProgress: number
   arr: number
   contractedARR: number
-  vinsAlloted: number
-  oneTimePurchase: number
+  vinsAlloted: number | string
+  oneTimePurchase: number | string
   addons: string[]
-  contractedRooftops: number
-  potentialRooftops: number
+  contractedRooftops: number | string
+  potentialRooftops: number | string
   paymentsFrequency: string
   lockinPeriod: string
   firstPaymentDate: string
-  firstPaymentAmount: number
+  firstPaymentAmount: number | string
   taxID: string
   termsAndConditionsEdited: boolean
   contractSource: string
@@ -154,6 +154,7 @@ interface RooftopsData {
   city?: string
   contractedDate: string
   contractPeriod: string
+  contractLink?: string
   sla: {
     status: "On Track" | "Breached"
     daysBreached?: number
