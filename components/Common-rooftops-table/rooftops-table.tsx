@@ -149,6 +149,9 @@ interface RooftopsData {
   type: string
   subType: string
   region: string
+  country?: string
+  state?: string
+  city?: string
   contractedDate: string
   contractPeriod: string
   sla: {
@@ -661,6 +664,9 @@ export function RooftopsTable({
         type: typeOptions[idNum % typeOptions.length],
         subType: subTypeOptions[idNum % subTypeOptions.length],
         region: regionOptions[idNum % regionOptions.length],
+        country: 'USA',
+        state: 'CA',
+        city: 'Los Angeles',
         contractedDate: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(formattedDate, "-"),
         contractPeriod: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(contractPeriod, "-"),
         sla: idNum % 4 === 0 

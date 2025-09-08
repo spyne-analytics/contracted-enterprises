@@ -375,7 +375,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       } else {
         options = [subStage]
       }
-      if (!options.includes("Drop Off")) options.push("Drop Off")
+      if (!options.includes("Drop-Off")) options.push("Drop-Off")
       return options
     }
 
@@ -1256,17 +1256,17 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
 
       {/* Country - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{data.country || 'N/A'}</span>
+        <span className="text-sm text-gray-900">{(data as any).country || 'N/A'}</span>
       </td>
 
       {/* State - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{data.state || 'N/A'}</span>
+        <span className="text-sm text-gray-900">{(data as any).state || 'N/A'}</span>
       </td>
 
       {/* City - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{data.city || 'N/A'}</span>
+        <span className="text-sm text-gray-900">{(data as any).city || 'N/A'}</span>
       </td>
 
       {/* Contracted Date */}
