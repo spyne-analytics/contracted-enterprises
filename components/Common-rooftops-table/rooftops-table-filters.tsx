@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 
 interface FilterValues {
-  stage: string
   accountExecutivePOC: string
   financePOC: string
   plan: string
@@ -11,6 +10,11 @@ interface FilterValues {
   type: string
   subType: string
   region: string
+  contractedOnly: boolean
+  contractedDate: {
+    from: string
+    to: string
+  }
 }
 
 interface RooftopsTableFiltersProps {
@@ -30,10 +34,10 @@ export function RooftopsTableFilters({
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const filtersRef = useRef<HTMLDivElement>(null)
   const filtersPanelRef = useRef<HTMLDivElement>(null)
+  const moreFiltersButtonRef = useRef<HTMLButtonElement>(null)
 
   // Filter options
   const filterOptions = {
-    stage: ["All Stage", "Contracted", "Onboarding"],
     accountExecutivePOC: ["All AE POC", "John Doe", "Jane Smith", "Mike Johnson", "Sarah Wilson"],
     financePOC: ["All Finance POC", "Emily Rodriguez", "David Chen", "Sarah Johnson", "Michael Brown"],
     plan: ["All Plan", "Image", "360 Spin", "Video Tour"],
@@ -48,9 +52,8 @@ export function RooftopsTableFilters({
     const handleClickOutside = (event: MouseEvent) => {
       // Check if click is outside the filter panel (but allow clicks on the filter button)
       if (filtersPanelRef.current && !filtersPanelRef.current.contains(event.target as Node)) {
-        // Also check if the click is not on the filter button itself
-        const filterButton = filtersRef.current?.querySelector('button')
-        if (filterButton && !filterButton.contains(event.target as Node)) {
+        // Also check if the click is not on the "More Filters" button itself
+        if (moreFiltersButtonRef.current && !moreFiltersButtonRef.current.contains(event.target as Node)) {
           setShowFiltersPanel(false)
           setActiveDropdown(null)
         }
@@ -72,21 +75,127 @@ export function RooftopsTableFilters({
 
   const handleResetAll = () => {
     const resetFilters: FilterValues = {
-      stage: "All Stage",
       accountExecutivePOC: "All AE POC",
       financePOC: "All Finance POC",
       plan: "All Plan",
       product: "All Product",
       type: "All Type",
       subType: "All Sub Type",
-      region: "All Region"
+      region: "All Region",
+      contractedOnly: false,
+      contractedDate: {
+        from: "",
+        to: ""
+      }
     }
     onFiltersChange(resetFilters)
     setActiveDropdown(null)
   }
 
-  // Count active filters (not set to "All")
-  const activeFiltersCount = Object.values(filterValues).filter(value => !value.startsWith("All")).length
+  const handleContractedOnlyToggle = () => {
+    const newFilters = { 
+      ...filterValues, 
+      contractedOnly: !filterValues.contractedOnly
+    }
+    onFiltersChange(newFilters)
+  }
+
+  const handleContractedDateChange = (field: 'from' | 'to', value: string) => {
+    const newFilters = {
+      ...filterValues,
+      contractedDate: {
+        ...filterValues.contractedDate,
+        [field]: value
+      }
+    }
+    onFiltersChange(newFilters)
+  }
+
+  const handleDateRangeSelect = (range: string) => {
+    const today = new Date()
+    let from = ""
+    let to = ""
+
+    // Reset custom mode for preset ranges
+    setIsCustomMode(false)
+
+    switch (range) {
+      case "Today":
+        from = to = today.toISOString().split('T')[0]
+        break
+      case "This Week":
+        const startOfWeek = new Date(today)
+        startOfWeek.setDate(today.getDate() - today.getDay())
+        const endOfWeek = new Date(startOfWeek)
+        endOfWeek.setDate(startOfWeek.getDate() + 6)
+        from = startOfWeek.toISOString().split('T')[0]
+        to = endOfWeek.toISOString().split('T')[0]
+        break
+      case "This Month":
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+        from = startOfMonth.toISOString().split('T')[0]
+        to = endOfMonth.toISOString().split('T')[0]
+        break
+      case "All Dates":
+        from = ""
+        to = ""
+        break
+    }
+
+    const newFilters = {
+      ...filterValues,
+      contractedDate: { from, to }
+    }
+    onFiltersChange(newFilters)
+    setActiveDropdown(null)
+  }
+
+  // Track if we're in custom mode
+  const [isCustomMode, setIsCustomMode] = useState(false)
+
+  // Get display text for contracted date filter
+  const getContractedDateDisplay = () => {
+    const { from, to } = filterValues.contractedDate
+    
+    // If we're explicitly in custom mode or have partial dates, show Custom
+    if (isCustomMode || (from && to && from !== to)) {
+      return "Custom"
+    }
+    
+    if (!from && !to) return "All Dates"
+    
+    const today = new Date().toISOString().split('T')[0]
+    if (from === today && to === today) return "Today"
+    
+    // Check if it's this week
+    const todayDate = new Date()
+    const startOfWeek = new Date(todayDate)
+    startOfWeek.setDate(todayDate.getDate() - todayDate.getDay())
+    const endOfWeek = new Date(startOfWeek)
+    endOfWeek.setDate(startOfWeek.getDate() + 6)
+    
+    if (from === startOfWeek.toISOString().split('T')[0] && to === endOfWeek.toISOString().split('T')[0]) {
+      return "This Week"
+    }
+    
+    // Check if it's this month
+    const startOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1)
+    const endOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0)
+    
+    if (from === startOfMonth.toISOString().split('T')[0] && to === endOfMonth.toISOString().split('T')[0]) {
+      return "This Month"
+    }
+    
+    return "Custom"
+  }
+
+  // Count active filters (not set to "All" or default values)
+  const activeFiltersCount = Object.entries(filterValues).filter(([key, value]) => {
+    if (key === 'contractedOnly') return value === true
+    if (key === 'contractedDate') return value.from !== "" || value.to !== ""
+    return typeof value === 'string' && !value.startsWith("All")
+  }).length
 
   return (
     <div className="flex items-center justify-between w-full relative" ref={filtersRef}>
@@ -94,7 +203,7 @@ export function RooftopsTableFilters({
         <div className="relative">
           <input
             type="text"
-            placeholder="Search Enterprise"
+            placeholder="Search Rooftop"
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-[214px] h-8 pl-10 pr-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white placeholder-gray-500"
@@ -107,16 +216,95 @@ export function RooftopsTableFilters({
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Quick Filters - Right Aligned */}
+      <div className="flex items-center gap-4">
+        {/* Contracted Only Toggle */}
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <span className="font-regular">Contracted Only</span>
+            <div className="relative flex items-center">
+              <input
+                type="checkbox"
+                checked={filterValues.contractedOnly}
+                onChange={handleContractedOnlyToggle}
+                className="sr-only"
+              />
+              <div className={`w-10 h-5 rounded-full transition-colors flex items-center ${filterValues.contractedOnly ? 'bg-blue-500' : 'bg-gray-300'}`}>
+                <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${filterValues.contractedOnly ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
+              </div>
+            </div>
+          </label>
+        </div>
+
+        {/* Contracted Date Filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-700 font-regular">Contracted Date:</span>
+          <div className="relative">
+            <button
+              onClick={() => setActiveDropdown(activeDropdown === 'contractedDate' ? null : 'contractedDate')}
+              className="flex items-center justify-between h-8 px-3 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 min-w-[120px]"
+            >
+              <span>{getContractedDateDisplay()}</span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'contractedDate' ? 'rotate-180' : ''}`}>
+                <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            {activeDropdown === 'contractedDate' && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 min-w-[140px]">
+                {["All Dates", "Today", "This Week", "This Month", "Custom"].map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => {
+                      if (option === "Custom") {
+                        // Enable custom mode to show date inputs
+                        setIsCustomMode(true)
+                        setActiveDropdown(null)
+                      } else {
+                        handleDateRangeSelect(option)
+                      }
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Custom Date Range Inputs - Show when in custom mode */}
+        {isCustomMode && (
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={filterValues.contractedDate.from}
+              onChange={(e) => handleContractedDateChange('from', e.target.value)}
+              className="h-8 px-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              placeholder="From"
+            />
+            <span className="text-gray-500 text-sm">to</span>
+            <input
+              type="date"
+              value={filterValues.contractedDate.to}
+              onChange={(e) => handleContractedDateChange('to', e.target.value)}
+              className="h-8 px-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              placeholder="To"
+            />
+          </div>
+        )}
+
+        {/* Main Filter Dropdown */}
         <div className="relative">
           <button 
+            ref={moreFiltersButtonRef}
             onClick={() => setShowFiltersPanel(!showFiltersPanel)}
             className="flex items-center gap-2 h-8 px-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 min-w-[90px]"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-600">
               <path d="M2 4h12M4 8h8m-6 4h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            <span>Filter</span>
+            <span>More Filters</span>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-600 transition-transform ${showFiltersPanel ? 'rotate-180' : ''}`}>
               <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -143,35 +331,6 @@ export function RooftopsTableFilters({
           </div>
 
           <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-            {/* Stage Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Stage</label>
-              <div className="relative">
-                <button
-                  onClick={() => setActiveDropdown(activeDropdown === 'stage' ? null : 'stage')}
-                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50"
-                >
-                  <span>{filterValues.stage}</span>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'stage' ? 'rotate-180' : ''}`}>
-                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                {activeDropdown === 'stage' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                    {filterOptions.stage.map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => handleFilterChange('stage', option)}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* AE POC Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">AE POC</label>

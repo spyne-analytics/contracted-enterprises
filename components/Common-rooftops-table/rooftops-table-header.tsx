@@ -59,6 +59,9 @@ export function RooftopsTableHeader({ sortField, sortDirection, onSort, isAllSel
           </div>
         </th>
         
+        {/* Enterprise Name column */}
+        <HeaderCell field="enterpriseName" className="min-w-[180px]">Enterprise Name</HeaderCell>
+        
         {/* GD Name column */}
         <HeaderCell field="gdName" className="min-w-[180px]">GD Name</HeaderCell>
         
@@ -79,8 +82,6 @@ export function RooftopsTableHeader({ sortField, sortDirection, onSort, isAllSel
         <HeaderCell field="vinsAlloted" className="w-max whitespace-nowrap">VINs Contracted</HeaderCell>
         <HeaderCell field="oneTimePurchase" className="w-max whitespace-nowrap">One Time Purchase</HeaderCell>
         <HeaderCell field="addons" className="min-w-[180px]">Addons</HeaderCell>
-        <HeaderCell field="contractedRooftops" className="w-max whitespace-nowrap">Contracted Rooftops</HeaderCell>
-        <HeaderCell field="potentialRooftops" className="w-max whitespace-nowrap">Potential Rooftops</HeaderCell>
         <HeaderCell field="paymentsFrequency" className="w-max whitespace-nowrap">Payment Frequency</HeaderCell>
         <HeaderCell field="lockinPeriod" className="w-max whitespace-nowrap">Lock In Period</HeaderCell>
         <HeaderCell field="accountExecutivePOC" className="min-w-[180px]">AE POCs</HeaderCell>

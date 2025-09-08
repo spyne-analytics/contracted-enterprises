@@ -23,7 +23,7 @@ export const sampleRooftopData: RooftopData = {
       name: 'Jane Smith'
     },
     status: 'Contracted',
-    subStage: 'SH Call Scheduled',
+    subStage: 'Meet Scheduled',
     productSuite: ['Studio AI', 'Converse AI'],
     products: ['Image', 'Video Tour'],
     tat: 2
@@ -102,7 +102,7 @@ export const sampleRooftopData: RooftopData = {
       name: 'Emily Garcia'
     },
     status: 'Onboarding',
-    subStage: 'SH Call Done',
+    subStage: 'Meet Done',
     productSuite: ['Studio AI', 'Converse AI'],
     products: ['Image', '360 Spin', 'Video Tour'],
     tat: 1
@@ -145,5 +145,33 @@ export const sampleRooftopData: RooftopData = {
     productSuite: [],
     products: [],
     tat: 0
+  },
+  'RTF012': {
+    name: 'Test Enterprise Branch A',
+    obProgress: 60,
+    arr: 200000,
+    ageing: 45,
+    obPoc: {
+      name: 'Alex Johnson'
+    },
+    status: 'Contracted',
+    subStage: 'Meet Scheduled',
+    productSuite: ['Studio AI'],
+    products: ['Image', '360 Spin'],
+    tat: 3
+  },
+  'RTF013': {
+    name: 'Test Enterprise Branch B',
+    obProgress: 70,
+    arr: 250000,
+    ageing: 38,
+    obPoc: {
+      name: 'Maria Rodriguez'
+    },
+    status: 'Contracted',
+    subStage: 'Meet Scheduled',
+    productSuite: ['Studio AI'],
+    products: ['Image', 'Video Tour'],
+    tat: 2
   }
 }

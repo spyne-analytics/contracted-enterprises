@@ -149,20 +149,24 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
   const getStageColor = (stage: string) => {
     switch (stage) {
       case "Contract Initiated":
-        return "bg-blue-100 text-blue-800"
-      case "Contract User Pending Signature":
-        return "bg-yellow-100 text-yellow-800"
-      case "Contract Spyne Pending Signature":
-        return "bg-orange-100 text-orange-800"
+        return "bg-blue-100 text-blue-800" // Blue (early step, signals fresh start/commitment in progress)
       case "Contracted":
-        return "bg-red-100 text-red-800"
+        return "bg-yellow-100 text-yellow-800" // Yellow/Gold (secure but not yet live, feels "locked in")
       case "Onboarding":
-        return "bg-green-100 text-green-800"
+        return "bg-orange-100 text-orange-800" // Orange (active progress, in-between phase, energy/movement)
+      case "Live":
+        return "bg-green-100 text-green-800" // Green (success, active, healthy)
+      case "Churned":
+        return "bg-red-100 text-red-800" // Red (loss, stop state)
+      // Legacy stage mappings for backward compatibility
+      case "Contract User Pending Signature":
+        return "bg-blue-100 text-blue-800"
+      case "Contract Spyne Pending Signature":
+        return "bg-blue-100 text-blue-800"
       case "Drop Off":
-        return "bg-red-500 text-white" // Bright red for Drop Off
       case "Drop-off":
       case "Drop-Off":
-        return "bg-gray-200 text-gray-800"
+        return "bg-red-100 text-red-800" // Map to Churned color
       default:
         return "bg-blue-100 text-blue-800" // Default to contract initiated style
     }
@@ -170,118 +174,33 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
 
   const getSubStageColor = (subStage: string) => {
     switch (subStage) {
-      case "Inactive":
-        return "bg-gray-100 text-gray-800"
-      case "SH Call Pending":
-        return "bg-red-100 text-red-800"
-      case "SH Call Scheduled":
-        return "bg-orange-100 text-orange-800"
-      case "SH Call Reschedule":
-        return "bg-yellow-100 text-yellow-800"
-      case "SH Call Done":
-        return "bg-green-100 text-green-800"
+      case "Meet Pending":
+        return "bg-yellow-100 text-yellow-800" // Yellow (waiting, caution, not finalized yet)
+      case "Meet Scheduled":
+        return "bg-blue-100 text-blue-800" // Blue (secure, on track, feels stable)
+      case "Meet Done":
+        return "bg-green-100 text-green-800" // Green (success, meeting happened)
+      case "Meet Cancelled":
+        return "bg-red-100 text-red-800" // Red (hard negative)
       case "Drop Off":
-        return "bg-red-100 text-red-800"
+        return "bg-orange-100 text-orange-800" // Orange (partial negative — didn't complete, but not as final as cancelled)
+      case "Meet Reschedule":
+        return "bg-yellow-100 text-yellow-800" // Yellow (similar to pending, waiting/caution state)
+      case "Inactive":
+        return "bg-gray-100 text-gray-800" // Gray (neutral/inactive state)
       default:
         return "bg-gray-100 text-gray-800"
     }
   }
 
-  const StageDropdown = ({ stage, rooftopId, currentSubStage }: { stage: string; rooftopId: string; currentSubStage: string }) => {
-    const [isOpen, setIsOpen] = useState(false)
-    const stageSequence = [
-      "Contract Initiated",
-      "Contract User Pending Signature", 
-      "Contract Spyne Pending Signature",
-      "Contracted",
-      "Onboarding"
-    ]
-
-    // Get current stage index
-    const currentStageIndex = stageSequence.indexOf(stage)
-    const currentStage = currentStageIndex >= 0 ? stage : (stage === "Drop Off" ? "Drop Off" : "Contract Initiated")
-
-    const handleStageChange = (newStage: string) => {
-      const updates: any = { status: newStage }
-      
-      // Auto-set sub-stage when moving to Contracted
-      if (newStage === "Contracted") {
-        updates.subStage = "SH Call Pending"
-      } else if (newStage !== "Contracted" && newStage !== "Onboarding") {
-        // Set to Inactive for pre-contracted stages
-        updates.subStage = "Inactive"
-      }
-      
-      onRooftopUpdate(rooftopId, updates)
-      setIsOpen(false)
-    }
-
-    // Get available next stages (can only progress to next stage in sequence)
-    const getAvailableStages = () => {
-      const currentIndex = stageSequence.indexOf(currentStage)
-      if (currentIndex === -1) return [stageSequence[0]] // If stage not found, start from beginning
-      
-      // Special logic for Contracted stage - can't move to Onboarding until sub-stage is complete
-      if (currentStage === "Contracted" && currentSubStage !== "SH Call Done") {
-        return [currentStage] // Only show current stage, can't progress
-      }
-      
-      let availableStages: string[] = []
-      
-      // If already at Drop Off, only show Drop Off
-      if (currentStage === "Drop Off") {
-        return [currentStage]
-      }
-      
-      // Can only move to next stage or stay current
-      if (currentIndex === stageSequence.length - 1) {
-        // If at last stage, only show current stage
-        availableStages = [currentStage]
-      } else {
-        // Show current stage and next stage
-        availableStages = [currentStage, stageSequence[currentIndex + 1]]
-      }
-      
-      return availableStages
-    }
-
+  const StageBadge = ({ stage }: { stage: string }) => {
+    // Only show "Contracted" and "Contract Initiated" stages
+    const displayStage = (stage === "Contracted" || stage === "Contract Initiated") ? stage : "Contract Initiated"
+    
     return (
-      <div className="relative">
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            setIsOpen(!isOpen)
-          }}
-          className={`inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium rounded-md h-[22px] min-w-max hover:opacity-80 transition-opacity ${getStageColor(currentStage)}`}
-        >
-          <span className="whitespace-nowrap">{currentStage}</span>
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-current flex-shrink-0">
-            <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-
-        {isOpen && (
-          <>
-            <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-            <div className="absolute top-full left-0 mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg z-20 min-w-[200px]">
-              {getAvailableStages().map((option) => (
-                <button
-                  key={option}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleStageChange(option)
-                  }}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-[#f9fafb] transition-colors ${
-                    option === currentStage ? "bg-[#f0ebff] text-[#4600f2]" : "text-[#333333]"
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-md h-[22px] min-w-max ${getStageColor(displayStage)}`}>
+        <span className="whitespace-nowrap">{displayStage}</span>
+      </span>
     )
   }
 
@@ -290,9 +209,11 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     const [showHandoverModal, setShowHandoverModal] = useState(false)
     const [showDoneConfirm, setShowDoneConfirm] = useState(false)
     const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+    const [showCancellationModal, setShowCancellationModal] = useState(false)
     const [pendingSubStage, setPendingSubStage] = useState<string | null>(null)
     const [showSuccessToast, setShowSuccessToast] = useState(false)
     const [showScheduleForm, setShowScheduleForm] = useState(false)
+    const [cancellationReason, setCancellationReason] = useState("")
     
     // Form state
     const [inputPlatforms, setInputPlatforms] = useState<string[]>(["FTP"])
@@ -303,11 +224,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     const [outputWebsiteProvider, setOutputWebsiteProvider] = useState("NA")
     const [sameAsInput, setSameAsInput] = useState(false)
     const [clientLanguages, setClientLanguages] = useState<string[]>(["English"])
-    const [rooftopsOnSpyne, setRooftopsOnSpyne] = useState("34")
-    const [totalRooftops, setTotalRooftops] = useState("34")
-    const [websiteURL, setWebsiteURL] = useState("https://www.laredochryslerdeepjeep.com/")
     const [importantNotes, setImportantNotes] = useState("NA")
-    const [isGroupDealership, setIsGroupDealership] = useState(true)
     
     // Schedule form state
     const [selectedDate, setSelectedDate] = useState("")
@@ -316,7 +233,6 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     const [endTime, setEndTime] = useState("08:30 PM")
     const [duration, setDuration] = useState("30 mins")
     const [rescheduleReason, setRescheduleReason] = useState("")
-    const [includeImages, setIncludeImages] = useState(true)
     const [obCallNotRequired, setObCallNotRequired] = useState(false)
     const [inviteEmails, setInviteEmails] = useState("")
     const [participants, setParticipants] = useState([
@@ -334,6 +250,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       'ritika.agarwal (ritika.agarwal@spyne.ai)'
     ]
     const [obManager, setObManager] = useState(obManagerOptions[0])
+    const [selectedOnboardingManager, setSelectedOnboardingManager] = useState(obManagerOptions[0])
     const communicationOptions = ['Email', 'Phone', 'Whatsapp', 'Slack']
     const [modeOfCommunication, setModeOfCommunication] = useState<string[]>(['Email'])
     const [obnrEmail, setObnrEmail] = useState("")
@@ -430,28 +347,31 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       
       // For Contracted/Onboarding stages, show progression options
       const subStageSequence = [
-        "SH Call Pending",
-        "SH Call Scheduled", 
-        "SH Call Reschedule",
-        "SH Call Done"
+        "Meet Pending",
+        "Meet Scheduled", 
+        "Meet Reschedule",
+        "Meet Done",
+        "Meet Cancelled"
       ]
       
       const currentIndex = subStageSequence.indexOf(subStage)
       if (currentIndex === -1) {
         // If current sub-stage not found, start from beginning
-        return ["SH Call Pending"]
+        return ["Meet Pending"]
       }
       
       // Can stay current or move to next available options
       let options: string[] = []
-      if (subStage === "SH Call Pending") {
-        options = ["SH Call Pending", "SH Call Scheduled"]
-      } else if (subStage === "SH Call Scheduled") {
-        options = ["SH Call Scheduled", "SH Call Reschedule", "SH Call Done"]
-      } else if (subStage === "SH Call Reschedule") {
-        options = ["SH Call Reschedule", "SH Call Scheduled", "SH Call Done"]
-      } else if (subStage === "SH Call Done") {
-        return ["SH Call Done"] // Final state
+      if (subStage === "Meet Pending") {
+        options = ["Meet Pending", "Meet Scheduled"]
+      } else if (subStage === "Meet Scheduled") {
+        options = ["Meet Scheduled", "Meet Reschedule", "Meet Done", "Meet Cancelled"]
+      } else if (subStage === "Meet Reschedule") {
+        options = ["Meet Reschedule", "Meet Scheduled", "Meet Done"]
+      } else if (subStage === "Meet Done") {
+        return ["Meet Done"] // Final state
+      } else if (subStage === "Meet Cancelled") {
+        return ["Meet Cancelled"] // Final state
       } else {
         options = [subStage]
       }
@@ -460,16 +380,21 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     }
 
     const handleSubStageChange = (newSubStage: string) => {
-      // Check if changing to "SH Call Scheduled" or "SH Call Reschedule" - show modal
-      if ((subStage === "SH Call Pending" && newSubStage === "SH Call Scheduled") ||
-          (newSubStage === "SH Call Reschedule")) {
+      // Check if changing to "Meet Scheduled" or "Meet Reschedule" - show modal
+      if ((subStage === "Meet Pending" && newSubStage === "Meet Scheduled") ||
+          (newSubStage === "Meet Reschedule")) {
         setPendingSubStage(newSubStage)
         setShowHandoverModal(true)
         setIsOpen(false)
-      } else if (newSubStage === "SH Call Done") {
+      } else if (newSubStage === "Meet Done") {
         // Ask for confirmation; if yes, also move Stage to Onboarding
         setPendingSubStage(newSubStage)
         setShowDoneConfirm(true)
+        setIsOpen(false)
+      } else if (newSubStage === "Meet Cancelled") {
+        // Show cancellation reason modal
+        setPendingSubStage(newSubStage)
+        setShowCancellationModal(true)
         setIsOpen(false)
       } else if (newSubStage === "Drop Off") {
         setPendingSubStage(newSubStage)
@@ -519,15 +444,42 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     }
 
     const handleDoneConfirm = () => {
-      // Update both sub stage and overall stage
-      onRooftopUpdate(rooftopId, { subStage: 'SH Call Done', status: 'Onboarding' })
+      if (!selectedOnboardingManager) {
+        return // Don't proceed if no onboarding manager is selected
+      }
+      
+      // Update both sub stage and overall stage, including onboarding manager
+      onRooftopUpdate(rooftopId, { 
+        subStage: 'Meet Done', 
+        status: 'Onboarding',
+        onboardingManager: selectedOnboardingManager
+      })
       setPendingSubStage(null)
       setShowDoneConfirm(false)
+      setSelectedOnboardingManager(obManagerOptions[0]) // Reset to default
     }
     const handleDoneCancel = () => {
       setPendingSubStage(null)
       setShowDoneConfirm(false)
+      setSelectedOnboardingManager(obManagerOptions[0]) // Reset to default
     }
+
+    const handleCancellationConfirm = () => {
+      if (cancellationReason.trim()) {
+        // Update sub stage to Meet Cancelled
+        onRooftopUpdate(rooftopId, { subStage: 'Meet Cancelled' })
+        setPendingSubStage(null)
+        setShowCancellationModal(false)
+        setCancellationReason("")
+      }
+    }
+
+    const handleCancellationCancel = () => {
+      setPendingSubStage(null)
+      setShowCancellationModal(false)
+      setCancellationReason("")
+    }
+
 
     // Multi-select dropdown component
     const MultiSelectDropdown = ({ 
@@ -694,9 +646,9 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         {/* Handover Details Modal */}
         {showHandoverModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
-              <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+              {/* Modal Header - Fixed */}
+              <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
                     {showScheduleForm ? 'SH Call Schedule' : 'Handover Details'}
@@ -715,8 +667,8 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                 </button>
               </div>
               
-              {/* Modal Body */}
-              <div className="px-6 py-4 space-y-6">
+              {/* Modal Body - Scrollable */}
+              <div className="px-6 py-4 space-y-6 flex-1 overflow-y-auto">
                 {!showScheduleForm ? (
                   // Handover Form
                   <>
@@ -818,66 +770,6 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Is this a Group Dealership?
-                      </label>
-                      <div className="flex rounded-md shadow-sm">
-                        <button 
-                          className={`px-4 py-2 text-sm font-medium border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            isGroupDealership 
-                              ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700' 
-                              : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'
-                          }`}
-                          onClick={() => setIsGroupDealership(true)}
-                        >
-                          Yes
-                        </button>
-                        <button 
-                          className={`px-4 py-2 text-sm font-medium border rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            !isGroupDealership 
-                              ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700' 
-                              : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'
-                          }`}
-                          onClick={() => setIsGroupDealership(false)}
-                        >
-                          No
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rooftops on Spyne*
-                      </label>
-                      <input
-                        type="text"
-                        value={rooftopsOnSpyne}
-                        onChange={(e) => setRooftopsOnSpyne(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Total Rooftops (Potential)*
-                      </label>
-                      <input
-                        type="text"
-                        value={totalRooftops}
-                        onChange={(e) => setTotalRooftops(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Website URL*
-                      </label>
-                      <input
-                        type="url"
-                        value={websiteURL}
-                        onChange={(e) => setWebsiteURL(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Important Notes*
                       </label>
                       <textarea
@@ -969,19 +861,6 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                           />
                         </div>
 
-                        {/* Images */}
-                        <div className="flex items-center">
-                          <input
-                            type="checkbox"
-                            id="includeImages2"
-                            checked={includeImages}
-                            onChange={(e) => setIncludeImages(e.target.checked)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label htmlFor="includeImages2" className="ml-2 block text-sm text-gray-700">
-                            Images
-                          </label>
-                        </div>
                       </div>
                     ) : (
                     /* Invite Participants */
@@ -1088,8 +967,8 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                     </div>
                     )}
 
-                    {/* Reschedule Reason (only in schedule flow) */}
-                    {!obCallNotRequired && (
+                                      {/* Reschedule Reason (only when Meet Reschedule is selected) */}
+                  {pendingSubStage === "Meet Reschedule" && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Reschedule Reason *
@@ -1104,25 +983,12 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                     </div>
                     )}
 
-                    {/* Images Checkbox */}
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="includeImages"
-                        checked={includeImages}
-                        onChange={(e) => setIncludeImages(e.target.checked)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="includeImages" className="ml-2 block text-sm text-gray-700">
-                        Images
-                      </label>
-                    </div>
                   </>
                 )}
               </div>
               
-              {/* Modal Footer */}
-              <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+              {/* Modal Footer - Fixed */}
+              <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
                 {showScheduleForm && (
                   <button
                     onClick={handleBackToHandover}
@@ -1148,15 +1014,31 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           </div>
         )}
 
-        {/* Confirmation modal for SH Call Done */}
+        {/* Confirmation modal for Meet Done */}
         {showDoneConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Mark SH Call as Done?</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Mark Meet as Done?</h3>
               </div>
-              <div className="px-6 py-4">
+              <div className="px-6 py-4 space-y-4">
                 <p className="text-sm text-gray-700">This will move the enterprise Stage to Onboarding. Are you sure?</p>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Onboarding Manager *
+                  </label>
+                  <select
+                    value={selectedOnboardingManager}
+                    onChange={(e) => setSelectedOnboardingManager(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    {obManagerOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
@@ -1167,7 +1049,12 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                 </button>
                 <button
                   onClick={handleDoneConfirm}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  disabled={!selectedOnboardingManager}
+                  className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                    selectedOnboardingManager
+                      ? 'text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                      : 'text-gray-400 bg-gray-300 cursor-not-allowed'
+                  }`}
                 >
                   Yes, Continue
                 </button>
@@ -1203,6 +1090,54 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             </div>
           </div>
         )}
+
+        {/* Meet Cancellation Modal */}
+        {showCancellationModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Meet Cancellation</h3>
+              </div>
+              <div className="px-6 py-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cancellation Reason *
+                  </label>
+                  <textarea
+                    rows={6}
+                    value={cancellationReason}
+                    onChange={(e) => setCancellationReason(e.target.value)}
+                    placeholder="Please provide the reason for cancelling the meet..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    required
+                  />
+                  {!cancellationReason.trim() && (
+                    <p className="text-sm text-red-600 mt-1">This field is required</p>
+                  )}
+                </div>
+              </div>
+              <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+                <button
+                  onClick={handleCancellationCancel}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCancellationConfirm}
+                  disabled={!cancellationReason.trim()}
+                  className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                    cancellationReason.trim()
+                      ? 'text-white bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                      : 'text-gray-400 bg-gray-300 cursor-not-allowed'
+                  }`}
+                >
+                  Cancel Meet
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Success Toast */}
         <SuccessToast 
@@ -1230,18 +1165,23 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             }}
             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-0 focus:outline-none flex-shrink-0"
           />
-          <span className="text-sm text-gray-900 truncate">{data.groupDealer}</span>
+          <span className="text-sm text-gray-900 truncate">{data.name}</span>
         </div>
+      </td>
+
+      {/* Enterprise Name */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className="text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{data.enterpriseName}</span>
       </td>
 
       {/* GD Name */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{data.gdName}</span>
+        <span className="text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{data.gdName}</span>
       </td>
 
       {/* Stage */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <StageDropdown stage={data.stage} rooftopId={data.id} currentSubStage={data.subStage} />
+        <StageBadge stage={data.stage} />
       </td>
 
       {/* Sub Stage */}
