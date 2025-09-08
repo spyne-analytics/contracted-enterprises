@@ -155,6 +155,7 @@ interface RooftopsData {
   contractLink?: string
   contractedDate: string
   contractPeriod: string
+  contractLink?: string
   sla: {
     status: "On Track" | "Breached"
     daysBreached?: number
