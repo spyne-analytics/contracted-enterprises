@@ -4,7 +4,7 @@ export const sampleRooftopData: RooftopData = {
   'RTF001': {
     name: 'AutoMax Dealership',
     obProgress: 75,
-    arr: 250000,
+    arr: 2500,
     ageing: 45,
     obPoc: {
       name: 'John Doe'
