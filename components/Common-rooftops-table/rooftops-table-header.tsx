@@ -70,7 +70,7 @@ export function RooftopsTableHeader({ sortField, sortDirection, onSort, isAllSel
         <HeaderCell field="subStage" className="min-w-[180px]">Sub Stage</HeaderCell>
         <HeaderCell field="type" className="min-w-[180px]">Type</HeaderCell>
         <HeaderCell field="subType" className="min-w-[180px]">Subtype</HeaderCell>
-        <HeaderCell field="products" className="min-w-[180px]">Product</HeaderCell>
+        <HeaderCell field="products" className="min-w-[180px]">Converse AI</HeaderCell>
         <HeaderCell field="plan" className="min-w-[180px]">Studio AI</HeaderCell>
         <HeaderCell field="region" className="min-w-[130px]">Region</HeaderCell>
         <HeaderCell field="country" className="min-w-[180px]">Country</HeaderCell>

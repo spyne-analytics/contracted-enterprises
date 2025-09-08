@@ -1183,17 +1183,14 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         </span>
       </td>
 
-      {/* Product */}
+      {/* Converse AI */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
         <div className="flex items-center gap-1">
-          {data.products.map((product, index) => (
-            <span 
-              key={index}
-              className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap ${getProductBadgeStyles(product)}`}
-            >
-              {product}
-            </span>
-          ))}
+          <span 
+            className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap ${getProductBadgeStyles("Converse AI")}`}
+          >
+            Converse AI
+          </span>
         </div>
       </td>
 
@@ -1288,16 +1285,6 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             </span>
           ))}
         </div>
-      </td>
-
-      {/* Contracted Rooftops */}
-      <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.contractedRooftops === "-" ? "-" : typeof data.contractedRooftops === 'number' ? data.contractedRooftops.toLocaleString() : data.contractedRooftops}</span>
-      </td>
-
-      {/* Potential Rooftops */}
-      <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.potentialRooftops === "-" ? "-" : typeof data.potentialRooftops === 'number' ? data.potentialRooftops.toLocaleString() : data.potentialRooftops}</span>
       </td>
 
       {/* Payment Frequency */}

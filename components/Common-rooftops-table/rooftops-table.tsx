@@ -10,6 +10,9 @@ interface FilterValues {
   product: string
   type: string
   subType: string
+  subStage: string
+  paymentFrequency: string
+  contractSource: string
   region: string
   contractedOnly: boolean
   contractedDate: {
@@ -155,7 +158,6 @@ interface RooftopsData {
   contractLink?: string
   contractedDate: string
   contractPeriod: string
-  contractLink?: string
   sla: {
     status: "On Track" | "Breached"
     daysBreached?: number
@@ -310,6 +312,9 @@ export function RooftopsTable({
     product: "All Product",
     type: "All Type",
     subType: "All Sub Type",
+    subStage: "All Sub Stage",
+    paymentFrequency: "All Payment Frequency",
+    contractSource: "All Contract Source",
     region: "All Region",
     contractedOnly: false,
     contractedDate: {
@@ -717,6 +722,9 @@ export function RooftopsTable({
       const matchesProduct = filterValues.product === "All Product" || item.products.includes(filterValues.product)
       const matchesType = filterValues.type === "All Type" || item.type === filterValues.type
       const matchesSubType = filterValues.subType === "All Sub Type" || item.subType === filterValues.subType
+      const matchesSubStage = filterValues.subStage === "All Sub Stage" || item.subStage === filterValues.subStage
+      const matchesPaymentFrequency = filterValues.paymentFrequency === "All Payment Frequency" || item.paymentsFrequency === filterValues.paymentFrequency
+      const matchesContractSource = filterValues.contractSource === "All Contract Source" || item.contractSource === filterValues.contractSource
       const matchesRegion = filterValues.region === "All Region" || item.region === filterValues.region
       
       // Quick filter: Contracted Only
@@ -738,7 +746,8 @@ export function RooftopsTable({
       })()
 
       return matchesSearch && matchesAccountExecutivePOC && matchesFinancePOC && matchesPlan && 
-             matchesProduct && matchesType && matchesSubType && matchesRegion && matchesContractedOnly && matchesContractedDate
+             matchesProduct && matchesType && matchesSubType && matchesSubStage && matchesPaymentFrequency && 
+             matchesContractSource && matchesRegion && matchesContractedOnly && matchesContractedDate
     })
 
     // Apply sorting

@@ -9,6 +9,9 @@ interface FilterValues {
   product: string
   type: string
   subType: string
+  subStage: string
+  paymentFrequency: string
+  contractSource: string
   region: string
   contractedOnly: boolean
   contractedDate: {
@@ -44,6 +47,9 @@ export function RooftopsTableFilters({
     product: ["All Product", "Studio AI", "Converse AI"],
     type: ["All Type", "Franchise dealer", "Independent Dealer"],
     subType: ["All Sub Type", "Franchise dealer", "Independent Dealer"],
+    subStage: ["All Sub Stage", "Meet Scheduled", "Contract Sent", "Contract Signed", "Onboarding", "Drop-Off"],
+    paymentFrequency: ["All Payment Frequency", "Monthly", "Quarterly", "Yearly", "One-time"],
+    contractSource: ["All Contract Source", "Dealhub", "Exception"],
     region: ["All Region", "AMER", "AMEA", "APAC", "EMEA", "LATAM"]
   }
 
@@ -81,6 +87,9 @@ export function RooftopsTableFilters({
       product: "All Product",
       type: "All Type",
       subType: "All Sub Type",
+      subStage: "All Sub Stage",
+      paymentFrequency: "All Payment Frequency",
+      contractSource: "All Contract Source",
       region: "All Region",
       contractedOnly: false,
       contractedDate: {
@@ -524,6 +533,93 @@ export function RooftopsTableFilters({
                       <button
                         key={option}
                         onClick={() => handleFilterChange('region', option)}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Sub Stage Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Sub Stage</label>
+              <div className="relative">
+                <button
+                  onClick={() => setActiveDropdown(activeDropdown === 'subStage' ? null : 'subStage')}
+                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50"
+                >
+                  <span>{filterValues.subStage}</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'subStage' ? 'rotate-180' : ''}`}>
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                {activeDropdown === 'subStage' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                    {filterOptions.subStage.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => handleFilterChange('subStage', option)}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Payment Frequency Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Payment Frequency</label>
+              <div className="relative">
+                <button
+                  onClick={() => setActiveDropdown(activeDropdown === 'paymentFrequency' ? null : 'paymentFrequency')}
+                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50"
+                >
+                  <span>{filterValues.paymentFrequency}</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'paymentFrequency' ? 'rotate-180' : ''}`}>
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                {activeDropdown === 'paymentFrequency' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                    {filterOptions.paymentFrequency.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => handleFilterChange('paymentFrequency', option)}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Contract Source Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Contract Source</label>
+              <div className="relative">
+                <button
+                  onClick={() => setActiveDropdown(activeDropdown === 'contractSource' ? null : 'contractSource')}
+                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50"
+                >
+                  <span>{filterValues.contractSource}</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'contractSource' ? 'rotate-180' : ''}`}>
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                {activeDropdown === 'contractSource' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                    {filterOptions.contractSource.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => handleFilterChange('contractSource', option)}
                         className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
                       >
                         {option}
