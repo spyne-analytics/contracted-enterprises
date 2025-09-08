@@ -827,27 +827,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                           </select>
                         </div>
 
-                        {/* Mode of Communication (multi select) */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Mode of Communication*</label>
-                          <MultiSelectDropdown
-                            options={communicationOptions}
-                            selected={modeOfCommunication}
-                            onChange={setModeOfCommunication}
-                            placeholder="Select modes"
-                          />
-                        </div>
-
-                        {/* Email */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Email*</label>
-                          <input
-                            type="email"
-                            value={obnrEmail}
-                            onChange={(e) => setObnrEmail(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                          />
-                        </div>
+                        {/* Removed Mode of Communication and Email fields as per requirements */}
 
                         {/* Reason */}
                         <div>

@@ -129,15 +129,15 @@ interface RooftopsData {
   obProgress: number
   arr: number
   contractedARR: number
-  vinsAlloted: number
-  oneTimePurchase: number
+  vinsAlloted: number | string
+  oneTimePurchase: number | string
   addons: string[]
-  contractedRooftops: number
-  potentialRooftops: number
+  contractedRooftops: number | string
+  potentialRooftops: number | string
   paymentsFrequency: string
   lockinPeriod: string
   firstPaymentDate: string
-  firstPaymentAmount: number
+  firstPaymentAmount: number | string
   taxID: string
   termsAndConditionsEdited: boolean
   contractSource: string
@@ -152,6 +152,7 @@ interface RooftopsData {
   country?: string
   state?: string
   city?: string
+  contractLink?: string
   contractedDate: string
   contractPeriod: string
   sla: {
@@ -925,8 +926,8 @@ export function RooftopsTable({
   const handleBulkHandoverConfirm = () => {
     if (!bulkHandoverData) return
     
-    // Move to schedule form if this is Meet Scheduled
-    if (bulkHandoverData.subStage === "Meet Scheduled") {
+    // Move to schedule form for Meet Scheduled and Meet Reschedule (match individual flow)
+    if (bulkHandoverData.subStage === "Meet Scheduled" || bulkHandoverData.subStage === "Meet Reschedule") {
       setShowBulkScheduleForm(true)
     } else {
       // For reschedule, apply changes directly
@@ -1174,7 +1175,7 @@ export function RooftopsTable({
                   </div>
 
                                       {/* Reschedule Reason (only when Meet Reschedule is selected) */}
-                    {bulkHandoverData.subStage === "Meet Reschedule" && (
+                    {false && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Reschedule Reason *
@@ -1369,27 +1370,7 @@ export function RooftopsTable({
                         </select>
                       </div>
 
-                      {/* Mode of Communication (multi select) */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Mode of Communication*</label>
-                        <MultiSelectDropdown
-                          options={bulkCommunicationOptions}
-                          selected={bulkModeOfCommunication}
-                          onChange={setBulkModeOfCommunication}
-                          placeholder="Select modes"
-                        />
-                      </div>
-
-                      {/* Email */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email*</label>
-                        <input
-                          type="email"
-                          value={bulkObnrEmail}
-                          onChange={(e) => setBulkObnrEmail(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        />
-                      </div>
+                      {/* Removed Mode of Communication and Email fields as per requirements */}
 
                       {/* Reason */}
                       <div>
