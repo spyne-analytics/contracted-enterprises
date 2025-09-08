@@ -51,7 +51,7 @@ export function RooftopsTableHeader({ sortField, sortDirection, onSort, isAllSel
                 if (el) el.indeterminate = isIndeterminate;
               }}
               onChange={(e) => onSelectAll(e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-0 focus:outline-none flex-shrink-0"
+              className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-0 focus:outline-none flex-shrink-0"
             />
             <span className="text-sm font-medium text-gray-600">
               Rooftop Name

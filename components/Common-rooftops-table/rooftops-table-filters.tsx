@@ -206,7 +206,7 @@ export function RooftopsTableFilters({
             placeholder="Search Rooftop"
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-[214px] h-8 pl-10 pr-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white placeholder-gray-500"
+            className="w-[214px] h-8 pl-10 pr-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white placeholder-gray-500"
           />
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-400">
@@ -229,7 +229,7 @@ export function RooftopsTableFilters({
                 onChange={handleContractedOnlyToggle}
                 className="sr-only"
               />
-              <div className={`w-10 h-5 rounded-full transition-colors flex items-center ${filterValues.contractedOnly ? 'bg-blue-500' : 'bg-gray-300'}`}>
+              <div className={`w-10 h-5 rounded-full transition-colors flex items-center ${filterValues.contractedOnly ? 'bg-primary-500' : 'bg-gray-300'}`}>
                 <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${filterValues.contractedOnly ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
               </div>
             </div>
@@ -280,7 +280,7 @@ export function RooftopsTableFilters({
               type="date"
               value={filterValues.contractedDate.from}
               onChange={(e) => handleContractedDateChange('from', e.target.value)}
-              className="h-8 px-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="h-8 px-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
               placeholder="From"
             />
             <span className="text-gray-500 text-sm">to</span>
@@ -288,7 +288,7 @@ export function RooftopsTableFilters({
               type="date"
               value={filterValues.contractedDate.to}
               onChange={(e) => handleContractedDateChange('to', e.target.value)}
-              className="h-8 px-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="h-8 px-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
               placeholder="To"
             />
           </div>
@@ -310,7 +310,7 @@ export function RooftopsTableFilters({
             </svg>
           </button>
           {activeFiltersCount > 0 && (
-            <div className="absolute -top-2 -right-2 w-5 h-5 bg-blue-500 text-white text-xs font-semibold rounded-full flex items-center justify-center">
+            <div className="absolute -top-2 -right-2 w-5 h-5 bg-primary-500 text-white text-xs font-semibold rounded-full flex items-center justify-center">
               {activeFiltersCount}
             </div>
           )}

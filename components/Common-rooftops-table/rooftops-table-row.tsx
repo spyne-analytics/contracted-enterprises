@@ -13,7 +13,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
   const getTypeBadgeStyles = (type: string) => {
     switch (type) {
       case "Group Dealer":
-        return "bg-blue-100 text-blue-800"
+        return "bg-primary-100 text-primary-800"
       case "Marketplace":
         return "bg-lime-100 text-lime-800"
       case "Partner":
@@ -45,7 +45,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       case "Studio AI":
         return "bg-purple-100 text-purple-800"
       case "Converse AI":
-        return "bg-blue-100 text-blue-800"
+        return "bg-primary-100 text-primary-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -54,11 +54,11 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
   const getPlanBadgeStyles = (plan: string) => {
     switch (plan) {
       case "Essential":
-        return "bg-blue-100 text-blue-800"
+        return "bg-primary-100 text-primary-800"
       case "Growth":
         return "bg-purple-100 text-purple-800"
       case "Enterprise":
-        return "bg-blue-100 text-blue-800"
+        return "bg-primary-100 text-primary-800"
       case "Comprehensive":
         return "bg-pink-100 text-pink-800"
       default:
@@ -110,7 +110,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     <div className="flex items-center gap-2 min-w-max">
       <div className="w-16 bg-gray-200 rounded-full h-2">
         <div 
-          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+          className="bg-primary-600 h-2 rounded-full transition-all duration-300" 
           style={{ width: `${progress}%` }} 
         />
       </div>
@@ -149,7 +149,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
   const getStageColor = (stage: string) => {
     switch (stage) {
       case "Contract Initiated":
-        return "bg-blue-100 text-blue-800" // Blue (early step, signals fresh start/commitment in progress)
+        return "bg-primary-100 text-primary-800" // Blue (early step, signals fresh start/commitment in progress)
       case "Contracted":
         return "bg-yellow-100 text-yellow-800" // Yellow/Gold (secure but not yet live, feels "locked in")
       case "Onboarding":
@@ -160,15 +160,15 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         return "bg-red-100 text-red-800" // Red (loss, stop state)
       // Legacy stage mappings for backward compatibility
       case "Contract User Pending Signature":
-        return "bg-blue-100 text-blue-800"
+        return "bg-primary-100 text-primary-800"
       case "Contract Spyne Pending Signature":
-        return "bg-blue-100 text-blue-800"
+        return "bg-primary-100 text-primary-800"
       case "Drop Off":
       case "Drop-off":
       case "Drop-Off":
         return "bg-red-100 text-red-800" // Map to Churned color
       default:
-        return "bg-blue-100 text-blue-800" // Default to contract initiated style
+        return "bg-primary-100 text-primary-800" // Default to contract initiated style
     }
   }
 
@@ -177,7 +177,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       case "Meet Pending":
         return "bg-yellow-100 text-yellow-800" // Yellow (waiting, caution, not finalized yet)
       case "Meet Scheduled":
-        return "bg-blue-100 text-blue-800" // Blue (secure, on track, feels stable)
+        return "bg-primary-100 text-primary-800" // Blue (secure, on track, feels stable)
       case "Meet Done":
         return "bg-green-100 text-green-800" // Green (success, meeting happened)
       case "Meet Cancelled":
@@ -520,7 +520,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       return (
         <div className="relative z-10">
           <div 
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer min-h-[40px] flex flex-wrap items-center gap-1"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer min-h-[40px] flex flex-wrap items-center gap-1"
             onClick={() => setIsOpen(!isOpen)}
           >
             {selected.length === 0 ? (
@@ -529,11 +529,11 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               selected.map((item) => (
                 <span 
                   key={item}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                  className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-primary-100 text-primary-800"
                 >
                   {item}
                   <button 
-                    className="ml-1 text-blue-600 hover:text-blue-800"
+                    className="ml-1 text-primary-600 hover:text-primary-800"
                     onClick={(e) => {
                       e.stopPropagation()
                       removeOption(item)
@@ -566,7 +566,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                       setSearchTerm(e.target.value)
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
                 
@@ -579,7 +579,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                       <div
                         key={option}
                         className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
-                          selected.includes(option) ? 'bg-blue-50 text-blue-700' : ''
+                          selected.includes(option) ? 'bg-primary-50 text-primary-700' : ''
                         }`}
                         onClick={(e) => {
                           e.stopPropagation()
@@ -695,7 +695,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                         type="text"
                         value={inputDMS}
                         onChange={(e) => setInputDMS(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                     <div>
@@ -706,7 +706,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                         type="text"
                         value={inputWebsiteProvider}
                         onChange={(e) => setInputWebsiteProvider(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                   </div>
@@ -722,7 +722,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                         id="sameAsInput"
                         checked={sameAsInput}
                         onChange={(e) => handleSameAsInputChange(e.target.checked)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                       />
                       <label htmlFor="sameAsInput" className="ml-2 block text-sm text-gray-700">
                         Same as Input
@@ -747,7 +747,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                         type="text"
                         value={outputDMS}
                         onChange={(e) => setOutputDMS(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                     <div>
@@ -758,7 +758,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                         type="text"
                         value={outputWebsiteProvider}
                         onChange={(e) => setOutputWebsiteProvider(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                   </div>
@@ -776,7 +776,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                         rows={4}
                         value={importantNotes}
                         onChange={(e) => setImportantNotes(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                     <div>
@@ -803,7 +803,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                         id="obCallNotRequired"
                         checked={obCallNotRequired}
                         onChange={(e) => setObCallNotRequired(e.target.checked)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                       />
                       <label htmlFor="obCallNotRequired" className="ml-2 block text-sm text-gray-700">
                         OB call not required.
@@ -819,7 +819,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                           <select
                             value={obManager}
                             onChange={(e) => setObManager(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           >
                             {obManagerOptions.map((opt) => (
                               <option key={opt} value={opt}>{opt}</option>
@@ -845,7 +845,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                             type="email"
                             value={obnrEmail}
                             onChange={(e) => setObnrEmail(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           />
                         </div>
 
@@ -857,7 +857,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                             value={obnrReason}
                             onChange={(e) => setObnrReason(e.target.value)}
                             placeholder="Write your reason"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           />
                         </div>
 
@@ -871,9 +871,9 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                           placeholder="Add email addresses to invite guests"
                           value={inviteEmails}
                           onChange={(e) => setInviteEmails(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
-                        <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
                           Invite
                         </button>
                       </div>
@@ -909,7 +909,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                           <select
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           >
                             {next30DaysOptions.map((opt) => (
                               <option key={opt} value={opt}>{opt}</option>
@@ -922,7 +922,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                             <select
                               value={selectedTimezone}
                               onChange={(e) => setSelectedTimezone(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                             >
                               {timezoneOptions.map((tz) => (
                                 <option key={tz} value={tz}>{tz}</option>
@@ -936,7 +936,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                             <select
                               value={duration}
                               onChange={(e) => setDuration(e.target.value)}
-                              className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
                             >
                               {durationOptions.map((d) => (
                                 <option key={d.label} value={d.label}>{d.label}</option>
@@ -949,7 +949,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                           <select
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           >
                             {timeOptions.map((t) => (
                               <option key={t} value={t}>{t}</option>
@@ -978,7 +978,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                         value={rescheduleReason}
                         onChange={(e) => setRescheduleReason(e.target.value)}
                         placeholder="Reschedule Reason *"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                     )}
@@ -992,20 +992,20 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                 {showScheduleForm && (
                   <button
                     onClick={handleBackToHandover}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                   >
                     Back
                   </button>
                 )}
                 <button
                   onClick={handleModalCancel}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={showScheduleForm ? handleScheduleConfirm : handleModalConfirm}
-                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 border border-transparent rounded-md hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-primary-600 border border-transparent rounded-md hover:from-purple-700 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                 >
                   {showScheduleForm ? (obCallNotRequired ? 'Continue' : 'Schedule') : 'Continue'}
                 </button>
@@ -1031,7 +1031,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                   <select
                     value={selectedOnboardingManager}
                     onChange={(e) => setSelectedOnboardingManager(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     required
                   >
                     {obManagerOptions.map((option) => (
@@ -1043,7 +1043,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
                   onClick={handleDoneCancel}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   Cancel
                 </button>
@@ -1052,7 +1052,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                   disabled={!selectedOnboardingManager}
                   className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                     selectedOnboardingManager
-                      ? 'text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                      ? 'text-white bg-primary-600 hover:bg-primary-700 focus:ring-primary-500'
                       : 'text-gray-400 bg-gray-300 cursor-not-allowed'
                   }`}
                 >
@@ -1076,13 +1076,13 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
                   onClick={() => { setShowCancelConfirm(false); setPendingSubStage(null) }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   No
                 </button>
                 <button
                   onClick={() => { onRooftopUpdate(rooftopId, { subStage: 'Drop Off', status: 'Drop Off' }); setShowCancelConfirm(false); setPendingSubStage(null) }}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   Yes, Drop Off
                 </button>
@@ -1108,7 +1108,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                     value={cancellationReason}
                     onChange={(e) => setCancellationReason(e.target.value)}
                     placeholder="Please provide the reason for cancelling the meet..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
                     required
                   />
                   {!cancellationReason.trim() && (
@@ -1119,7 +1119,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
                   onClick={handleCancellationCancel}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   Cancel
                 </button>
@@ -1163,7 +1163,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               e.stopPropagation()
               onSelectEnterprise(data.id, e.target.checked)
             }}
-            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-0 focus:outline-none flex-shrink-0"
+            className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-0 focus:outline-none flex-shrink-0"
           />
           <span className="text-sm text-gray-900 truncate">{data.name}</span>
         </div>
@@ -1287,13 +1287,13 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       {/* VINs Contracted */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center bg-gray-100 text-gray-800 whitespace-nowrap">
-          {data.vinsAlloted === "-" ? "-" : data.vinsAlloted.toLocaleString()}
+          {data.vinsAlloted === "-" ? "-" : typeof data.vinsAlloted === 'number' ? data.vinsAlloted.toLocaleString() : data.vinsAlloted}
         </span>
       </td>
 
       {/* One Time Purchase */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.oneTimePurchase === "-" ? "-" : formatARR(data.oneTimePurchase)}</span>
+        <span className="text-sm text-gray-900">{data.oneTimePurchase === "-" ? "-" : typeof data.oneTimePurchase === 'number' ? formatARR(data.oneTimePurchase) : data.oneTimePurchase}</span>
       </td>
 
       {/* Addons */}
@@ -1302,7 +1302,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           {(data.addons || []).map((addon, index) => (
             <span 
               key={index}
-              className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap bg-blue-100 text-blue-800 flex-shrink-0"
+              className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap bg-primary-100 text-primary-800 flex-shrink-0"
             >
               {addon}
             </span>
@@ -1312,12 +1312,12 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
 
       {/* Contracted Rooftops */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.contractedRooftops === "-" ? "-" : (data.contractedRooftops || 0).toLocaleString()}</span>
+        <span className="text-sm text-gray-900">{data.contractedRooftops === "-" ? "-" : typeof data.contractedRooftops === 'number' ? data.contractedRooftops.toLocaleString() : data.contractedRooftops}</span>
       </td>
 
       {/* Potential Rooftops */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.potentialRooftops === "-" ? "-" : (data.potentialRooftops || 0).toLocaleString()}</span>
+        <span className="text-sm text-gray-900">{data.potentialRooftops === "-" ? "-" : typeof data.potentialRooftops === 'number' ? data.potentialRooftops.toLocaleString() : data.potentialRooftops}</span>
       </td>
 
       {/* Payment Frequency */}
@@ -1349,7 +1349,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
 
       {/* First Payment Amount */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.firstPaymentAmount === "-" ? "-" : formatARR(data.firstPaymentAmount)}</span>
+        <span className="text-sm text-gray-900">{data.firstPaymentAmount === "-" ? "-" : typeof data.firstPaymentAmount === 'number' ? formatARR(data.firstPaymentAmount) : data.firstPaymentAmount}</span>
       </td>
 
       {/* Tax ID */}
@@ -1391,7 +1391,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
 
       {/* Contract Link - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-blue-600 underline cursor-pointer">{data.contractLink || 'N/A'}</span>
+        <span className="text-sm text-primary-600 underline cursor-pointer">{data.contractLink || 'N/A'}</span>
       </td>
 
       {/* Team ID */}

@@ -378,7 +378,7 @@ export function RooftopsTable({
     return (
       <div className="relative z-10">
         <div 
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer min-h-[40px] flex flex-wrap items-center gap-1"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer min-h-[40px] flex flex-wrap items-center gap-1"
           onClick={() => setIsOpen(!isOpen)}
         >
           {selected.length === 0 ? (
@@ -387,11 +387,11 @@ export function RooftopsTable({
             selected.map((item) => (
               <span 
                 key={item}
-                className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-primary-100 text-primary-800"
               >
                 {item}
                 <button 
-                  className="ml-1 text-blue-600 hover:text-blue-800"
+                  className="ml-1 text-primary-600 hover:text-primary-800"
                   onClick={(e) => {
                     e.stopPropagation()
                     removeOption(item)
@@ -424,7 +424,7 @@ export function RooftopsTable({
                     setSearchTerm(e.target.value)
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
               </div>
               
@@ -437,7 +437,7 @@ export function RooftopsTable({
                     <div
                       key={option}
                       className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
-                        selected.includes(option) ? 'bg-blue-50 text-blue-700' : ''
+                        selected.includes(option) ? 'bg-primary-50 text-primary-700' : ''
                       }`}
                       onClick={(e) => {
                         e.stopPropagation()
@@ -976,7 +976,7 @@ export function RooftopsTable({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
               <span className="text-sm text-gray-600">No. of Rooftops:</span>
-              <span className="text-sm font-semibold text-blue-600">{filteredData.length.toLocaleString()}</span>
+              <span className="text-sm font-semibold text-primary-600">{filteredData.length.toLocaleString()}</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
               <span className="text-sm text-gray-600">Total Contracted ARR</span>
@@ -1008,7 +1008,7 @@ export function RooftopsTable({
                   <select
                     onChange={(e) => handleBulkSubStageChange(e.target.value)}
                     disabled={!canUseBulkActions}
-                    className={`appearance-none border rounded-lg px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    className={`appearance-none border rounded-lg px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
                       canUseBulkActions 
                         ? 'bg-white border-gray-300 text-gray-900' 
                         : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
@@ -1098,13 +1098,13 @@ export function RooftopsTable({
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setBulkActionConfirm(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmBulkAction}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 Confirm Changes
               </button>
@@ -1146,18 +1146,18 @@ export function RooftopsTable({
                 // Handover Form - Exact copy from individual modal
                 <>
                   {/* Bulk Info Banner */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
                     <div className="flex">
                       <div className="flex-shrink-0">
-                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <svg className="h-5 w-5 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                         </svg>
                       </div>
                       <div className="ml-3">
-                        <h4 className="text-sm font-medium text-blue-800">
+                        <h4 className="text-sm font-medium text-primary-800">
                           Bulk Handover Details
                         </h4>
-                        <div className="mt-2 text-sm text-blue-700">
+                        <div className="mt-2 text-sm text-primary-700">
                           <p>
                             These details will be applied to all {bulkHandoverData.selectedIds.length} selected rooftops. 
                             You can modify individual details later if needed.
@@ -1178,7 +1178,7 @@ export function RooftopsTable({
                         value={bulkRescheduleReason}
                         onChange={(e) => setBulkRescheduleReason(e.target.value)}
                         placeholder="Reschedule Reason *"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                   )}
@@ -1206,7 +1206,7 @@ export function RooftopsTable({
                           type="text"
                           value={bulkInputDMS}
                           onChange={(e) => setBulkInputDMS(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
                       <div>
@@ -1217,7 +1217,7 @@ export function RooftopsTable({
                           type="text"
                           value={bulkInputWebsiteProvider}
                           onChange={(e) => setBulkInputWebsiteProvider(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
                     </div>
@@ -1240,7 +1240,7 @@ export function RooftopsTable({
                               setBulkOutputWebsiteProvider(bulkInputWebsiteProvider)
                             }
                           }}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                         />
                         <label htmlFor="bulkSameAsInput" className="ml-2 block text-sm text-gray-700">
                           Same as Input
@@ -1265,7 +1265,7 @@ export function RooftopsTable({
                           type="text"
                           value={bulkOutputDMS}
                           onChange={(e) => setBulkOutputDMS(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
                       <div>
@@ -1276,7 +1276,7 @@ export function RooftopsTable({
                           type="text"
                           value={bulkOutputWebsiteProvider}
                           onChange={(e) => setBulkOutputWebsiteProvider(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
                     </div>
@@ -1294,7 +1294,7 @@ export function RooftopsTable({
                           rows={4}
                           value={bulkImportantNotes}
                           onChange={(e) => setBulkImportantNotes(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
                       <div>
@@ -1339,7 +1339,7 @@ export function RooftopsTable({
                       id="bulkObCallNotRequired"
                       checked={bulkObCallNotRequired}
                       onChange={(e) => setBulkObCallNotRequired(e.target.checked)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                     />
                     <label htmlFor="bulkObCallNotRequired" className="ml-2 block text-sm text-gray-700">
                       OB call not required.
@@ -1355,7 +1355,7 @@ export function RooftopsTable({
                         <select
                           value={bulkObManager}
                           onChange={(e) => setBulkObManager(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         >
                           {bulkObManagerOptions.map((opt) => (
                             <option key={opt} value={opt}>{opt}</option>
@@ -1381,7 +1381,7 @@ export function RooftopsTable({
                           type="email"
                           value={bulkObnrEmail}
                           onChange={(e) => setBulkObnrEmail(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
 
@@ -1393,7 +1393,7 @@ export function RooftopsTable({
                           value={bulkObnrReason}
                           onChange={(e) => setBulkObnrReason(e.target.value)}
                           placeholder="Write your reason"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
                     </div>
@@ -1408,9 +1408,9 @@ export function RooftopsTable({
                           placeholder="Add email addresses to invite guests"
                           value={bulkInviteEmails}
                           onChange={(e) => setBulkInviteEmails(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
-                        <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
                           Invite
                         </button>
                       </div>
@@ -1439,7 +1439,7 @@ export function RooftopsTable({
                           <select
                             value={bulkSelectedDate}
                             onChange={(e) => setBulkSelectedDate(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           >
                             {next30DaysOptions.map((opt) => (
                               <option key={opt} value={opt}>{opt}</option>
@@ -1452,7 +1452,7 @@ export function RooftopsTable({
                             <select
                               value={bulkSelectedTimezone}
                               onChange={(e) => setBulkSelectedTimezone(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                             >
                               {timezoneOptions.map((tz) => (
                                 <option key={tz} value={tz}>{tz}</option>
@@ -1466,7 +1466,7 @@ export function RooftopsTable({
                             <select
                               value={bulkDuration}
                               onChange={(e) => setBulkDuration(e.target.value)}
-                              className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
                             >
                               {durationOptions.map((d) => (
                                 <option key={d.label} value={d.label}>{d.label}</option>
@@ -1479,7 +1479,7 @@ export function RooftopsTable({
                           <select
                             value={bulkStartTime}
                             onChange={(e) => setBulkStartTime(e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           >
                             {timeOptions.map((t) => (
                               <option key={t} value={t}>{t}</option>
@@ -1508,7 +1508,7 @@ export function RooftopsTable({
                         value={bulkRescheduleReason}
                         onChange={(e) => setBulkRescheduleReason(e.target.value)}
                         placeholder="Reschedule Reason *"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                   )}
@@ -1522,20 +1522,20 @@ export function RooftopsTable({
               {showBulkScheduleForm && (
                 <button
                   onClick={handleBulkBackToHandover}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   Back
                 </button>
               )}
               <button
                 onClick={handleBulkHandoverCancel}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 Cancel
               </button>
               <button
                 onClick={showBulkScheduleForm ? handleBulkScheduleConfirm : handleBulkHandoverConfirm}
-                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 border border-transparent rounded-md hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-primary-600 border border-transparent rounded-md hover:from-purple-700 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
               >
                 {showBulkScheduleForm ? (bulkObCallNotRequired ? 'Continue' : 'Schedule') : 'Continue'}
               </button>
@@ -1564,7 +1564,7 @@ export function RooftopsTable({
                   value={bulkCancellationReason}
                   onChange={(e) => setBulkCancellationReason(e.target.value)}
                   placeholder="Please provide the reason for cancelling the meet for all selected rooftops..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
                   required
                 />
                 {!bulkCancellationReason.trim() && (
@@ -1575,7 +1575,7 @@ export function RooftopsTable({
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
               <button
                 onClick={handleBulkCancellationCancel}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 Cancel
               </button>
