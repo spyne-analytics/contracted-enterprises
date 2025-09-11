@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { RooftopsTableFilters } from "./rooftops-table-filters"
 import { RooftopsTableHeader } from "./rooftops-table-header"
 import { RooftopsTableRow } from "./rooftops-table-row"
@@ -132,7 +132,10 @@ export function RooftopsTable({
   onSearchChange 
 }: RooftopsTableProps) {
   const [searchValue, setSearchValue] = useState(searchTerm)
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState(searchTerm)
   const [selectedEnterprises, setSelectedEnterprises] = useState<Set<string>>(new Set())
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const [apiData, setApiData] = useState<RooftopsData[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -140,6 +143,23 @@ export function RooftopsTable({
   const [hasMore, setHasMore] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalRecords, setTotalRecords] = useState(0)
+
+  // Debounce search value
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchValue(searchValue)
+    }, 500) // 500ms debounce delay
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [searchValue])
 
   // Convert filter values to API format
   const getApiFilters = () => {
@@ -290,7 +310,7 @@ export function RooftopsTable({
       setLoadingMore(true)
       const nextPage = currentPage + 1
       const filters = getApiFilters()
-      const response = await ApiService.getTeamsPage(nextPage, 50, filters, filterValues.contractedOnly, searchValue)
+      const response = await ApiService.getTeamsPage(nextPage, 50, filters, filterValues.contractedOnly, debouncedSearchValue)
       
       setApiData(prev => [...prev, ...response.data])
       setHasMore(response.hasMore)
@@ -335,25 +355,50 @@ export function RooftopsTable({
   // Fetch initial data from API
   useEffect(() => {
     const fetchData = async () => {
+      // Cancel previous request if it exists
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+
+      // Create new AbortController for this request
+      abortControllerRef.current = new AbortController()
+
       try {
         setLoading(true)
         setError(null)
         const filters = getApiFilters()
-        const response = await ApiService.getTeamsWithDefaults(filters, filterValues.contractedOnly, searchValue)
-        setApiData(response.data)
-        setHasMore(response.hasMore)
-        setTotalRecords(response.total)
-        setCurrentPage(1)
+        const response = await ApiService.getTeamsWithDefaults(filters, filterValues.contractedOnly, debouncedSearchValue)
+        
+        // Only update state if request wasn't cancelled
+        if (!abortControllerRef.current.signal.aborted) {
+          setApiData(response.data)
+          setHasMore(response.hasMore)
+          setTotalRecords(response.total)
+          setCurrentPage(1)
+        }
       } catch (err) {
-        console.error('Failed to fetch teams data:', err)
-        setError(err instanceof Error ? err.message : 'Failed to fetch data')
+        // Only handle error if request wasn't cancelled
+        if (!abortControllerRef.current?.signal.aborted) {
+          console.error('Failed to fetch teams data:', err)
+          setError(err instanceof Error ? err.message : 'Failed to fetch data')
+        }
       } finally {
-        setLoading(false)
+        // Only update loading state if request wasn't cancelled
+        if (!abortControllerRef.current?.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchData()
-  }, [filterValues, searchValue]) // Re-load when filters or search change
+
+    // Cleanup function to cancel request on unmount or dependency change
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [filterValues, debouncedSearchValue]) // Re-load when filters or debounced search change
 
   const handleSort = (field: string) => {
     if (sortField === field) {

@@ -117,7 +117,7 @@ export class ApiService {
       accountExecutivePOC: item.ae_name, // AE POCs
       financePOC: item.finance_poc, // Finance POC
       stage: item.stage, // Stage
-      subStage: item.sub_stage, // Sub Stage
+      subStage: item.sub_stage === "Drop-Off" ? "Drop off" : item.sub_stage, // Sub Stage (normalize Drop-Off to Drop off)
       type: item.account_type, // Type
       subType: item.account_sub_type, // Sub Type
       region: item.region_type, // Region

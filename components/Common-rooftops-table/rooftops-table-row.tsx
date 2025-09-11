@@ -177,9 +177,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         return "bg-primary-100 text-primary-800"
       case "Contract Spyne Pending Signature":
         return "bg-primary-100 text-primary-800"
-      case "Drop Off":
-      case "Drop-off":
-      case "Drop-Off":
+      case "Drop off":
         return "bg-red-100 text-red-800" // Map to Churned color
       default:
         return "bg-primary-100 text-primary-800" // Default to contract initiated style
@@ -196,12 +194,12 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         return "bg-green-100 text-green-800" // Green (success, meeting happened)
       case "Meet Cancelled":
         return "bg-red-100 text-red-800" // Red (hard negative)
-      case "Drop Off":
-        return "bg-orange-100 text-orange-800" // Orange (partial negative — didn't complete, but not as final as cancelled)
       case "Meet Reschedule":
         return "bg-yellow-100 text-yellow-800" // Yellow (similar to pending, waiting/caution state)
-      case "Inactive":
-        return "bg-gray-100 text-gray-800" // Gray (neutral/inactive state)
+      case "Drop off":
+        return "bg-orange-100 text-orange-800" // Orange (partial negative — didn't complete, but not as final as cancelled)
+      case "NA":
+        return "bg-gray-100 text-gray-800" // Gray for not available/blank values
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -354,9 +352,9 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     
     // Get available sub-stage options based on current stage and sub-stage
     const getAvailableSubStages = () => {
-      // If stage is not Contracted or Onboarding, only show Inactive
+      // If stage is not Contracted or Onboarding, only show Drop off
       if (currentStage !== "Contracted" && currentStage !== "Onboarding") {
-        return ["Inactive"]
+        return ["Drop off"]
       }
       
       // For Contracted/Onboarding stages, show progression options
@@ -389,7 +387,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       } else {
         options = [subStage]
       }
-      if (!options.includes("Drop-Off")) options.push("Drop-Off")
+      if (!options.includes("Drop off")) options.push("Drop off")
       return options
     }
 
@@ -410,7 +408,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         setPendingSubStage(newSubStage)
         setShowCancellationModal(true)
         setIsOpen(false)
-      } else if (newSubStage === "Drop Off") {
+      } else if (newSubStage === "Drop off") {
         setPendingSubStage(newSubStage)
         setShowCancelConfirm(true)
         setIsOpen(false)
@@ -627,9 +625,9 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             e.stopPropagation()
             setIsOpen(!isOpen)
           }}
-          className={`inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium rounded-md h-[22px] min-w-max hover:opacity-80 transition-opacity ${getSubStageColor(subStage)}`}
+          className={`inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium rounded-md h-[22px] min-w-max hover:opacity-80 transition-opacity ${getSubStageColor(!subStage || subStage.trim() === '' ? 'NA' : subStage)}`}
         >
-          <span className="whitespace-nowrap">{subStage}</span>
+          <span className="whitespace-nowrap">{!subStage || subStage.trim() === '' ? 'NA' : subStage}</span>
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-current flex-shrink-0">
             <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -1062,10 +1060,10 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Mark as Drop Off?</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Mark as Drop off?</h3>
               </div>
               <div className="px-6 py-4">
-                <p className="text-sm text-gray-700">This will move the enterprise Stage to Drop Off. Are you sure?</p>
+                <p className="text-sm text-gray-700">This will move the enterprise Stage to Drop off. Are you sure?</p>
               </div>
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
@@ -1075,10 +1073,10 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                   No
                 </button>
                 <button
-                  onClick={() => { onRooftopUpdate(rooftopId, { subStage: 'Drop Off', status: 'Drop Off' }); setShowCancelConfirm(false); setPendingSubStage(null) }}
+                  onClick={() => { onRooftopUpdate(rooftopId, { subStage: 'Drop off', status: 'Drop off' }); setShowCancelConfirm(false); setPendingSubStage(null) }}
                   className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
-                  Yes, Drop Off
+                  Yes, Drop off
                 </button>
               </div>
             </div>
