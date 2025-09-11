@@ -1,3 +1,66 @@
+// API Response Types
+export interface ApiTeamData {
+  country: string
+  state: string
+  city: string
+  team_name: string
+  enterprise_id: string
+  org_name: string
+  team_id: string
+  enterprise_name: string
+  ae_name: string
+  stage: string
+  sub_stage: string
+  account_type: string
+  account_sub_type: string
+  platform: string
+  region_type: string
+  arr: number
+  products: string[]
+  contracted_date: string
+  contract_duration: number
+  vins_contracted: number
+  one_time_fees: number
+  add_ons: string[]
+  payment_frequency: number | string
+  lock_in_period: string
+  first_payment_date: string
+  first_payment_amount: number
+  tax_id: string
+  finance_poc: string
+  is_terms_edited: string
+  contract_source: string
+  contract_link: string
+  plan: string
+  conversationAiPlan: string | null
+  hasConversationAi: boolean
+}
+
+export interface ApiResponse {
+  data: {
+    totalCount: number
+    teams: ApiTeamData[]
+  }
+  total?: number
+  page?: number
+  per_page?: number
+}
+
+export interface ApiRequestPayload {
+  page: number
+  per_page: number
+  filters?: {
+    region_type?: string
+    account_type?: string
+    account_sub_type?: string
+    ae_id?: string
+    sub_stage?: string
+  }
+  search?: string
+  contracted_only?: boolean
+}
+
+// Legacy types for backward compatibility
 export interface RooftopData {
   [key: string]: {
     name: string
@@ -18,6 +81,8 @@ export interface RooftopData {
 export interface RooftopsData {
   id: string
   groupDealer: string
+  enterpriseName: string
+  gdName: string
   name: string
   logo: string
   obProgress: number
@@ -59,4 +124,7 @@ export interface RooftopsData {
   media: string[]
   tat: number
   platform: string
+  conversationAiPlan?: string | null
+  hasConversationAi?: boolean
+  plan?: string | string[]
 }

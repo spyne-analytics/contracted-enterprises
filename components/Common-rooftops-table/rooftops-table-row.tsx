@@ -10,9 +10,17 @@ interface RooftopsTableRowProps {
 }
 
 export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSelected, onSelectEnterprise }: RooftopsTableRowProps) {
+  // Helper function to display "-" for null, undefined, empty string, or blank values
+  const displayValue = (value: any): string => {
+    if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
+      return '-'
+    }
+    return String(value)
+  }
   const getTypeBadgeStyles = (type: string) => {
     switch (type) {
       case "Group Dealer":
+      case "GROUP_DEALER": // API returns GROUP_DEALER
         return "bg-primary-100 text-primary-800"
       case "Marketplace":
         return "bg-lime-100 text-lime-800"
@@ -21,6 +29,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       case "Auction Platform":
         return "bg-pink-100 text-pink-800"
       case "Individual Dealer":
+      case "INDIVIDUAL_DEALER": // API returns INDIVIDUAL_DEALER
         return "bg-purple-100 text-purple-800"
       case "Car Rental Leasing":
         return "bg-yellow-100 text-yellow-800"
@@ -32,8 +41,10 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
   const getSubTypeBadgeStyles = (subType: string) => {
     switch (subType) {
       case "Independent":
+      case "INDEPENDENT_DEALER": // API returns INDEPENDENT_DEALER
         return "bg-green-100 text-green-800"
       case "Franchise":
+      case "FRANCHISE_DEALER": // API returns FRANCHISE_DEALER
         return "bg-orange-100 text-orange-800"
       default:
         return "bg-gray-100 text-gray-800"
@@ -69,18 +80,21 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
   const getMediaIcon = (media: string) => {
     switch (media) {
       case "Images":
+      case "Image": // API returns "Image" instead of "Images"
         return (
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4.02778 17.5C3.60764 17.5 3.24797 17.3504 2.94878 17.0512C2.64959 16.752 2.5 16.3924 2.5 15.9722V5.27778C2.5 4.85764 2.64959 4.49797 2.94878 4.19878C3.24797 3.89959 3.60764 3.75 4.02778 3.75H14.7222C15.1424 3.75 15.502 3.89959 15.8012 4.19878C16.1004 4.49797 16.25 4.85764 16.25 5.27778V15.9722C16.25 16.3924 16.1004 16.752 15.8012 17.0512C15.502 17.3504 15.1424 17.5 14.7222 17.5H4.02778ZM4.02778 15.9722H14.7222V5.27778H4.02778V15.9722ZM5.55556 14.4444H13.1944C13.3472 14.4444 13.4618 14.3744 13.5382 14.2344C13.6146 14.0943 13.6019 13.9606 13.5 13.8333L11.3993 11.026C11.3229 10.9242 11.2211 10.8733 11.0937 10.8733C10.9664 10.8733 10.8646 10.9242 10.7882 11.026L8.80208 13.6806L7.38889 11.7899C7.3125 11.6881 7.21065 11.6372 7.08333 11.6372C6.95602 11.6372 6.85417 11.6881 6.77778 11.7899L5.25 13.8333C5.14815 13.9606 5.13542 14.0943 5.21181 14.2344C5.28819 14.3744 5.40278 14.4444 5.55556 14.4444ZM6.70139 9.09722C7.01968 9.09722 7.29022 8.98582 7.51302 8.76302C7.73582 8.54022 7.84722 8.26968 7.84722 7.95139C7.84722 7.6331 7.73582 7.36256 7.51302 7.13976C7.29022 6.91696 7.01968 6.80556 6.70139 6.80556C6.3831 6.80556 6.11256 6.91696 5.88976 7.13976C5.66696 7.36256 5.55556 7.6331 5.55556 7.95139C5.55556 8.26968 5.66696 8.54022 5.88976 8.76302C6.11256 8.98582 6.3831 9.09722 6.70139 9.09722Z" fill="#363F72"/>
           </svg>
         )
       case "360 Spin":
+      case "360": // API returns "360" instead of "360 Spin"
         return (
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M7.80078 13.9948C6.023 13.7587 4.55773 13.2726 3.40495 12.5365C2.25217 11.8003 1.67578 10.9531 1.67578 9.99479C1.67578 8.84201 2.47786 7.85938 4.08203 7.04688C5.6862 6.23438 7.66189 5.82812 10.0091 5.82812C12.3563 5.82812 14.332 6.23438 15.9362 7.04688C17.5404 7.85938 18.3424 8.84201 18.3424 9.99479C18.3424 10.7726 17.964 11.4774 17.207 12.1094C16.4501 12.7413 15.4466 13.2378 14.1966 13.599C13.9744 13.6684 13.7765 13.6372 13.6029 13.5052C13.4293 13.3733 13.3424 13.1962 13.3424 12.974C13.3424 12.724 13.4154 12.5017 13.5612 12.3073C13.707 12.1128 13.898 11.974 14.1341 11.8906C14.9674 11.6128 15.5994 11.2969 16.0299 10.9427C16.4605 10.5885 16.6758 10.2726 16.6758 9.99479C16.6758 9.55035 16.082 9.02257 14.8945 8.41146C13.707 7.80035 12.0786 7.49479 10.0091 7.49479C7.93967 7.49479 6.3112 7.80035 5.1237 8.41146C3.9362 9.02257 3.34245 9.55035 3.34245 9.99479C3.34245 10.3281 3.69661 10.7274 4.40495 11.1927C5.11328 11.658 6.12023 12.0087 7.42578 12.2448L6.92578 11.7448C6.773 11.592 6.69661 11.3976 6.69661 11.1615C6.69661 10.9253 6.773 10.7309 6.92578 10.5781C7.07856 10.4253 7.273 10.349 7.50911 10.349C7.74523 10.349 7.93967 10.4253 8.09245 10.5781L10.2591 12.7448C10.4258 12.9115 10.5091 13.1059 10.5091 13.3281C10.5091 13.5503 10.4258 13.7448 10.2591 13.9115L8.09245 16.0781C7.93967 16.2309 7.7487 16.3108 7.51953 16.3177C7.29036 16.3247 7.09245 16.2448 6.92578 16.0781C6.773 15.9253 6.69314 15.7344 6.6862 15.5052C6.67925 15.276 6.75217 15.0781 6.90495 14.9115L7.80078 13.9948Z" fill="#363F72"/>
           </svg>
         )
       case "Video Tour":
+      case "Video": // API returns "Video" instead of "Video Tour"
         return (
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4.00977 17.1523C3.58008 17.1523 3.21224 16.9993 2.90625 16.6934C2.60026 16.3874 2.44727 16.0195 2.44727 15.5898V6.21484C2.44727 5.78516 2.60026 5.41732 2.90625 5.11133C3.21224 4.80534 3.58008 4.65234 4.00977 4.65234H13.3848C13.8145 4.65234 14.1823 4.80534 14.4883 5.11133C14.7943 5.41732 14.9473 5.78516 14.9473 6.21484V9.73047L17.4082 7.26953C17.5384 7.13932 17.6816 7.10677 17.8379 7.17188C17.9941 7.23698 18.0723 7.36068 18.0723 7.54297V14.2617C18.0723 14.444 17.9941 14.5677 17.8379 14.6328C17.6816 14.6979 17.5384 14.6654 17.4082 14.5352L14.9473 12.0742V15.5898C14.9473 16.0195 14.7943 16.3874 14.4883 16.6934C14.1823 16.9993 13.8145 17.1523 13.3848 17.1523H4.00977ZM4.00977 15.5898H13.3848V6.21484H4.00977V15.5898Z" fill="#363F72"/>
@@ -1145,18 +1159,18 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             }}
             className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-0 focus:outline-none flex-shrink-0"
           />
-          <span className="text-sm text-gray-900 truncate">{data.name}</span>
+          <span className="text-sm text-gray-900 truncate">{displayValue(data.name)}</span>
         </div>
       </td>
 
       {/* Enterprise Name */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{data.enterpriseName}</span>
+        <span className="text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{displayValue(data.enterpriseName)}</span>
       </td>
 
       {/* GD Name */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{data.gdName}</span>
+        <span className="text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{displayValue(data.gdName)}</span>
       </td>
 
       {/* Stage */}
@@ -1172,25 +1186,29 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       {/* Type */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center ${getTypeBadgeStyles(data.type)}`}>
-          {data.type}
+          {displayValue(data.type)}
         </span>
       </td>
 
       {/* Subtype */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center ${getSubTypeBadgeStyles(data.subType)}`}>
-          {data.subType}
+          {displayValue(data.subType)}
         </span>
       </td>
 
       {/* Converse AI */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
         <div className="flex items-center gap-1">
-          <span 
-            className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap ${getProductBadgeStyles("Converse AI")}`}
-          >
-            Converse AI
-          </span>
+          {data.hasConversationAi ? (
+            <span 
+              className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap ${getProductBadgeStyles("Converse AI")}`}
+            >
+              {displayValue(data.conversationAiPlan)}
+            </span>
+          ) : (
+            <span className="text-sm text-gray-500">-</span>
+          )}
         </div>
       </td>
 
@@ -1199,19 +1217,19 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         <div className="flex items-center gap-2">
           {/* Plan Badges */}
           <div className="flex items-center gap-1">
-            {(data.plan || []).map((plan, index) => (
+            {((Array.isArray(data.plan) ? data.plan : (data.plan ? [data.plan] : [])) as string[]).length > 0 ? ((Array.isArray(data.plan) ? data.plan : (data.plan ? [data.plan] : [])) as string[]).map((plan, index) => (
               <span 
                 key={`plan-${index}`}
                 className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap ${getPlanBadgeStyles(plan)}`}
               >
                 {plan}
               </span>
-            ))}
+            )) : <span className="text-sm text-gray-500">-</span>}
           </div>
           
           {/* Media Icons */}
           <div className="flex items-center gap-1">
-            {(data.media || []).map((media, index) => (
+            {(data.media && data.media.length > 0) ? data.media.map((media, index) => (
               <div
                 key={`media-${index}`}
                 className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 text-gray-600"
@@ -1219,7 +1237,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               >
                 {getMediaIcon(media)}
               </div>
-            ))}
+            )) : null}
           </div>
         </div>
       </td>
@@ -1227,33 +1245,33 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       {/* Region */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[130px]">
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center justify-center min-w-max whitespace-nowrap ${getRegionBadgeStyles(data.region)}`}>
-          {data.region}
+          {displayValue(data.region)}
         </span>
       </td>
 
       {/* Country - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{(data as any).country || 'N/A'}</span>
+        <span className="text-sm text-gray-900">{displayValue((data as any).country)}</span>
       </td>
 
       {/* State - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{(data as any).state || 'N/A'}</span>
+        <span className="text-sm text-gray-900">{displayValue((data as any).state)}</span>
       </td>
 
       {/* City - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-900">{(data as any).city || 'N/A'}</span>
+        <span className="text-sm text-gray-900">{displayValue((data as any).city)}</span>
       </td>
 
       {/* Contracted Date */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.contractedDate}</span>
+        <span className="text-sm text-gray-900">{displayValue(data.contractedDate)}</span>
       </td>
 
       {/* Contract Period */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.contractPeriod}</span>
+        <span className="text-sm text-gray-900">{displayValue(data.contractPeriod)}</span>
       </td>
 
       {/* Contracted ARR */}
@@ -1264,39 +1282,39 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       {/* VINs Contracted */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center bg-gray-100 text-gray-800 whitespace-nowrap">
-          {data.vinsAlloted === "-" ? "-" : typeof data.vinsAlloted === 'number' ? data.vinsAlloted.toLocaleString() : data.vinsAlloted}
+          {data.vinsAlloted === null || data.vinsAlloted === undefined || data.vinsAlloted === "" ? "-" : typeof data.vinsAlloted === 'number' ? data.vinsAlloted.toLocaleString() : displayValue(data.vinsAlloted)}
         </span>
       </td>
 
       {/* One Time Purchase */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.oneTimePurchase === "-" ? "-" : typeof data.oneTimePurchase === 'number' ? formatARR(data.oneTimePurchase) : data.oneTimePurchase}</span>
+        <span className="text-sm text-gray-900">{data.oneTimePurchase === null || data.oneTimePurchase === undefined || data.oneTimePurchase === "" ? "-" : typeof data.oneTimePurchase === 'number' ? formatARR(data.oneTimePurchase) : displayValue(data.oneTimePurchase)}</span>
       </td>
 
       {/* Addons */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
         <div className="flex items-center gap-1 overflow-x-auto">
-          {(data.addons || []).map((addon, index) => (
+          {(data.addons && data.addons.length > 0) ? data.addons.map((addon, index) => (
             <span 
               key={index}
               className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap bg-primary-100 text-primary-800 flex-shrink-0"
             >
               {addon}
             </span>
-          ))}
+          )) : <span className="text-sm text-gray-500">-</span>}
         </div>
       </td>
 
       {/* Payment Frequency */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap bg-gray-100 text-gray-800">
-          {data.paymentsFrequency}
+          {displayValue(data.paymentsFrequency)}
         </span>
       </td>
 
       {/* Lock In Period */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.lockinPeriod}</span>
+        <span className="text-sm text-gray-900">{displayValue(data.lockinPeriod)}</span>
       </td>
 
       {/* AE POCs */}
@@ -1305,23 +1323,23 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-[#6A5F79] w-3 h-3">
             <path d="M8 8C10.21 8 12 6.21 12 4C12 1.79 10.21 0 8 0C5.79 0 4 1.79 4 4C4 6.21 5.79 8 8 8ZM8 10C5.33 10 0 11.34 0 14V16H16V14C16 11.34 10.67 10 8 10Z" fill="currentColor"/>
           </svg>
-          {data.accountExecutivePOC}
+          {displayValue(data.accountExecutivePOC)}
         </span>
       </td>
 
       {/* First Payment Date */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.firstPaymentDate}</span>
+        <span className="text-sm text-gray-900">{displayValue(data.firstPaymentDate)}</span>
       </td>
 
       {/* First Payment Amount */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.firstPaymentAmount === "-" ? "-" : typeof data.firstPaymentAmount === 'number' ? formatARR(data.firstPaymentAmount) : data.firstPaymentAmount}</span>
+        <span className="text-sm text-gray-900">{data.firstPaymentAmount === null || data.firstPaymentAmount === undefined || data.firstPaymentAmount === "" ? "-" : typeof data.firstPaymentAmount === 'number' ? formatARR(data.firstPaymentAmount) : displayValue(data.firstPaymentAmount)}</span>
       </td>
 
       {/* Tax ID */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{data.taxID}</span>
+        <span className="text-sm text-gray-900">{displayValue(data.taxID)}</span>
       </td>
 
       {/* Finance POC */}
@@ -1330,7 +1348,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-[#6A5F79] w-3 h-3">
             <path d="M8 8C10.21 8 12 6.21 12 4C12 1.79 10.21 0 8 0C5.79 0 4 1.79 4 4C4 6.21 5.79 8 8 8ZM8 10C5.33 10 0 11.34 0 14V16H16V14C16 11.34 10.67 10 8 10Z" fill="currentColor"/>
           </svg>
-          {data.financePOC}
+          {displayValue(data.financePOC)}
         </span>
       </td>
 
@@ -1352,23 +1370,42 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             ? 'bg-green-100 text-green-800' 
             : 'bg-yellow-100 text-yellow-800'
         }`}>
-          {data.contractSource}
+          {displayValue(data.contractSource)}
         </span>
       </td>
 
       {/* Contract Link - New column */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-primary-600 underline cursor-pointer">{data.contractLink || 'N/A'}</span>
+        {data.contractLink && data.contractLink.trim() !== '' ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              window.open(data.contractLink as string, '_blank', 'noopener,noreferrer')
+            }}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 focus:outline-none"
+            title="Open contract"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="w-4 h-4">
+              <path d="M14 3h7v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M21 14v6a1 1 0 0 1-1 1h-16a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className="text-xs font-medium">Open</span>
+          </button>
+        ) : (
+          <span className="text-sm text-gray-500">-</span>
+        )}
       </td>
 
       {/* Team ID */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-700">{data.teamId}</span>
+        <span className="text-sm text-gray-700">{displayValue(data.teamId)}</span>
       </td>
 
       {/* Enterprise ID */}
       <td className="px-3 py-2 h-9 min-w-[180px]">
-        <span className="text-sm text-gray-700">{data.enterpriseId}</span>
+        <span className="text-sm text-gray-700">{displayValue(data.enterpriseId)}</span>
       </td>
     </tr>
   )

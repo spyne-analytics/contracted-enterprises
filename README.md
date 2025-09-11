@@ -42,8 +42,6 @@ A modern dashboard for managing and monitoring contracted rooftops built with Ne
 ```
 Contract rooftops/
 ├── app/
-│   ├── data/
-│   │   └── sample-data.ts      # Sample rooftop data
 │   ├── globals.css             # Global styles
 │   ├── layout.tsx              # Root layout component
 │   ├── page.tsx                # Main dashboard page
@@ -87,7 +85,7 @@ The dashboard works with rooftop data that includes:
 ## Customization
 
 To customize the dashboard:
-1. Update sample data in `app/data/sample-data.ts`
-2. Modify table columns in the header component
-3. Adjust filtering options in the filters component
-4. Update styling using Tailwind CSS classes
+1. Modify table columns in the header component
+2. Adjust filtering options in the filters component
+3. Update styling using Tailwind CSS classes
+4. Configure API endpoints in `app/services/api.ts`

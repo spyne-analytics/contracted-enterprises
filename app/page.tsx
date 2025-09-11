@@ -2,11 +2,9 @@
 
 import { useState } from 'react'
 import { RooftopsTable } from '@/components/Common-rooftops-table/rooftops-table'
-import { sampleRooftopData } from './data/sample-data'
 import type { RooftopData } from './types'
 
 export default function ContractedRooftopsPage() {
-  const [rooftopData, setRooftopData] = useState<RooftopData>(sampleRooftopData)
   const [searchTerm, setSearchTerm] = useState("")
 
   const handleRooftopSelect = (rooftopId: string) => {
@@ -15,13 +13,8 @@ export default function ContractedRooftopsPage() {
   }
 
   const handleRooftopUpdate = (rooftopId: string, updates: Partial<RooftopData[string]>) => {
-    setRooftopData(prev => ({
-      ...prev,
-      [rooftopId]: {
-        ...prev[rooftopId],
-        ...updates
-      }
-    }))
+    console.log('Update rooftop:', rooftopId, updates)
+    // Handle rooftop update logic here - could update API data if needed
   }
 
   const handleSearchChange = (term: string) => {
@@ -41,7 +34,6 @@ export default function ContractedRooftopsPage() {
         {/* Rooftops Table */}
         <div className="bg-white rounded-2xl shadow">
           <RooftopsTable
-            rooftopData={rooftopData}
             onRooftopSelect={handleRooftopSelect}
             onRooftopUpdate={handleRooftopUpdate}
             searchTerm={searchTerm}

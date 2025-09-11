@@ -2,27 +2,20 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { RooftopsTableFilters } from "./rooftops-table-filters"
-
-interface FilterValues {
-  accountExecutivePOC: string
-  financePOC: string
-  plan: string
-  product: string
-  type: string
-  subType: string
-  subStage: string
-  paymentFrequency: string
-  contractSource: string
-  region: string
-  contractedOnly: boolean
-  contractedDate: {
-    from: string
-    to: string
-  }
-}
 import { RooftopsTableHeader } from "./rooftops-table-header"
 import { RooftopsTableRow } from "./rooftops-table-row"
-import type { RooftopData } from "@/app/types"
+import { SkeletonLoader, InfiniteScrollSkeleton } from "./skeleton-loader"
+import type { RooftopData, RooftopsData } from "@/app/types"
+import { ApiService } from "@/app/services/api"
+
+interface FilterValues {
+  region_type: string
+  account_type: string
+  account_sub_type: string
+  ae_id: string
+  sub_stage: string
+  contractedOnly: boolean
+}
 
 // Type options for mapping existing data
 const typeOptions = [
@@ -121,58 +114,10 @@ const cityNames = [
   "Virginia Beach", "Oklahoma City", "Tucson", "Fresno", "Sacramento", "Kansas City"
 ]
 
-// Adapted data structure for the new table
-interface RooftopsData {
-  id: string
-  groupDealer: string
-  enterpriseName: string
-  gdName: string
-  name: string
-  logo: string
-  obProgress: number
-  arr: number
-  contractedARR: number
-  vinsAlloted: number | string
-  oneTimePurchase: number | string
-  addons: string[]
-  contractedRooftops: number | string
-  potentialRooftops: number | string
-  paymentsFrequency: string
-  lockinPeriod: string
-  firstPaymentDate: string
-  firstPaymentAmount: number | string
-  taxID: string
-  termsAndConditionsEdited: boolean
-  contractSource: string
-  ageing: number
-  accountExecutivePOC: string
-  financePOC: string
-  stage: string
-  subStage: string
-  type: string
-  subType: string
-  region: string
-  country?: string
-  state?: string
-  city?: string
-  contractLink?: string
-  contractedDate: string
-  contractPeriod: string
-  sla: {
-    status: "On Track" | "Breached"
-    daysBreached?: number
-  }
-  teamId: string
-  enterpriseId: string
-  products: string[]
-  plan: string[]
-  media: string[]
-  tat: number
-  platform: string
-}
+// Use RooftopsData from types.ts
 
 interface RooftopsTableProps {
-  rooftopData: RooftopData
+  rooftopData?: RooftopData // Made optional since we'll fetch from API
   onRooftopSelect: (rooftopId: string) => void
   onRooftopUpdate: (rooftopId: string, updates: Partial<RooftopData[string]>) => void
   searchTerm?: string
@@ -188,6 +133,36 @@ export function RooftopsTable({
 }: RooftopsTableProps) {
   const [searchValue, setSearchValue] = useState(searchTerm)
   const [selectedEnterprises, setSelectedEnterprises] = useState<Set<string>>(new Set())
+  const [apiData, setApiData] = useState<RooftopsData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalRecords, setTotalRecords] = useState(0)
+
+  // Convert filter values to API format
+  const getApiFilters = () => {
+    const filters: any = {}
+    
+    if (filterValues.region_type !== "All Region") {
+      filters.region_type = filterValues.region_type
+    }
+    if (filterValues.account_type !== "All Type") {
+      filters.account_type = filterValues.account_type
+    }
+    if (filterValues.account_sub_type !== "All Sub Type") {
+      filters.account_sub_type = filterValues.account_sub_type
+    }
+    if (filterValues.ae_id !== "All AE") {
+      filters.ae_id = filterValues.ae_id
+    }
+    if (filterValues.sub_stage !== "All Sub Stage") {
+      filters.sub_stage = filterValues.sub_stage
+    }
+    
+    return Object.keys(filters).length > 0 ? filters : undefined
+  }
   const [bulkActionConfirm, setBulkActionConfirm] = useState<{
     show: boolean
     action: 'stage' | 'substage'
@@ -292,6 +267,7 @@ export function RooftopsTable({
     return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`
   }
 
+
   // Initialize bulk selected date and calculate end time
   useEffect(() => {
     if (!bulkSelectedDate && next30DaysOptions.length > 0) {
@@ -305,25 +281,79 @@ export function RooftopsTable({
     const end = start + dur
     setBulkEndTime(formatMinutesToTime(end))
   }, [bulkStartTime, bulkDuration])
-  const [filterValues, setFilterValues] = useState<FilterValues>({
-    accountExecutivePOC: "All AE POC",
-    financePOC: "All Finance POC",
-    plan: "All Plan",
-    product: "All Product",
-    type: "All Type",
-    subType: "All Sub Type",
-    subStage: "All Sub Stage",
-    paymentFrequency: "All Payment Frequency",
-    contractSource: "All Contract Source",
-    region: "All Region",
-    contractedOnly: false,
-    contractedDate: {
-      from: "",
-      to: ""
+
+  // Load more data for infinite scroll
+  const loadMoreData = async () => {
+    if (loadingMore || !hasMore) return
+
+    try {
+      setLoadingMore(true)
+      const nextPage = currentPage + 1
+      const filters = getApiFilters()
+      const response = await ApiService.getTeamsPage(nextPage, 50, filters, filterValues.contractedOnly, searchValue)
+      
+      setApiData(prev => [...prev, ...response.data])
+      setHasMore(response.hasMore)
+      setCurrentPage(nextPage)
+      setTotalRecords(response.total)
+    } catch (err) {
+      console.error('Failed to load more data:', err)
+    } finally {
+      setLoadingMore(false)
     }
+  }
+
+  // Infinite scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (loading || loadingMore || !hasMore) return
+
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+
+      // Load more when user is 200px from bottom
+      if (scrollTop + windowHeight >= documentHeight - 200) {
+        loadMoreData()
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [loading, loadingMore, hasMore, currentPage])
+  const [filterValues, setFilterValues] = useState<FilterValues>({
+    region_type: "All Region",
+    account_type: "All Type",
+    account_sub_type: "All Sub Type",
+    ae_id: "All AE",
+    sub_stage: "All Sub Stage",
+    contractedOnly: false
   })
   const [sortField, setSortField] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+
+  // Fetch initial data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const filters = getApiFilters()
+        const response = await ApiService.getTeamsWithDefaults(filters, filterValues.contractedOnly, searchValue)
+        setApiData(response.data)
+        setHasMore(response.hasMore)
+        setTotalRecords(response.total)
+        setCurrentPage(1)
+      } catch (err) {
+        console.error('Failed to fetch teams data:', err)
+        setError(err instanceof Error ? err.message : 'Failed to fetch data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [filterValues, searchValue]) // Re-load when filters or search change
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -474,280 +504,17 @@ export function RooftopsTable({
     )
   }
 
-  // Convert existing rooftop data to new format
+  // Use API data directly (already transformed by ApiService)
   const convertedData = useMemo((): RooftopsData[] => {
-    // Helper function to handle null values
-    const handleNullValue = (value: any, fallback: any = "-") => {
-      if (value === null || value === "null" || value === "Null" || value === "NULL") {
-        return fallback;
-      }
-      return value;
-    };
-
-    return Object.entries(rooftopData).map(([id, data], index) => {
-      const idNum = Number.parseInt(id.slice(-3)) || 1
-      
-      // Generate realistic contracted dates (between 6 months ago and 2 years ago)
-      const monthsAgo = Math.floor(Math.random() * 18) + 6 // 6 to 24 months ago
-      const contractedDate = new Date()
-      contractedDate.setMonth(contractedDate.getMonth() - monthsAgo)
-      const formattedDate = contractedDate.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
-      })
-      
-      // Generate contract periods (common contract durations)
-      const contractPeriods = ["1 Year", "2 Years", "3 Years", "5 Years"]
-      const contractPeriod = contractPeriods[idNum % contractPeriods.length]
-      
-      // Generate VINs Alloted (realistic numbers based on dealer size)
-      const vinsAlloted = Math.floor(Math.random() * 5000) + 500 // 500 to 5500 VINs
-      
-      // Generate One Time Purchase amount (setup fees, equipment costs, etc.)
-      const oneTimePurchase = Math.floor(Math.random() * 50000) + 10000 // $10K to $60K
-      
-      // Generate Addons (additional services and features)
-      const availableAddons = [
-        "Analytics Plus", "Premium Support", "API Access", "White Label", 
-        "Advanced Reporting", "Custom Branding", "Mobile App", "Training Package",
-        "Priority Queue", "Data Export", "SSO Integration", "Backup Service"
-      ]
-      const numAddons = Math.floor(Math.random() * 4) + 1 // 1 to 4 addons
-      const addons = availableAddons
-        .sort(() => 0.5 - Math.random())
-        .slice(0, numAddons)
-      
-      // Generate Contracted and Potential Rooftops
-      const contractedRooftops = Math.floor(Math.random() * 50) + 10 // 10 to 60 rooftops
-      const potentialRooftops = Math.floor(Math.random() * 100) + 20 // 20 to 120 rooftops
-      
-      // Generate Payments Frequency
-      type PaymentFrequency = 'Monthly' | 'Quarterly' | 'Half Yearly' | 'Yearly'
-      const paymentFrequencies: PaymentFrequency[] = ["Monthly", "Quarterly", "Half Yearly", "Yearly"]
-      const paymentsFrequency: PaymentFrequency = paymentFrequencies[idNum % paymentFrequencies.length]
-      
-      // Generate Lockin Period
-      const lockinPeriods = ["6 Months", "1 Year", "18 Months", "2 Years", "3 Years"]
-      const lockinPeriod = lockinPeriods[idNum % lockinPeriods.length]
-      
-      return {
-        id,
-        groupDealer: data.name === 'No Data Example Dealership' ? data.name : (() => {
-          // Use a smaller cycle to ensure repetition - cycle through GDs more frequently
-          const selectedGd = gdOptions[Math.floor(idNum / 3) % gdOptions.length]
-          return selectedGd
-        })(),
-        enterpriseName: data.name === 'No Data Example Dealership' ? "N/A" : (() => {
-          // Special handling for test enterprise rows
-          if (data.name === 'Test Enterprise Branch A' || data.name === 'Test Enterprise Branch B') {
-            return "Test Enterprise Group"
-          }
-          // Select enterprise based on the GD, but ensure multiple rooftops per enterprise
-          const selectedGd = gdOptions[Math.floor(idNum / 3) % gdOptions.length]
-          const enterprises = gdToEnterprises[selectedGd as keyof typeof gdToEnterprises] || []
-          // Use a smaller cycle to ensure multiple rooftops share the same enterprise
-          return enterprises[Math.floor(idNum / 2) % enterprises.length] || "N/A"
-        })(),
-        gdName: data.name === 'No Data Example Dealership' ? "N/A" : (() => {
-          // GD Name is the same as the GD (highest level) - ensure repetition
-          const selectedGd = gdOptions[Math.floor(idNum / 3) % gdOptions.length]
-          return selectedGd
-        })(),
-        name: data.name === 'No Data Example Dealership' ? data.name : (() => {
-          // Generate unique rooftop names based on enterprise + location
-          const selectedGd = gdOptions[Math.floor(idNum / 3) % gdOptions.length]
-          const enterprises = gdToEnterprises[selectedGd as keyof typeof gdToEnterprises] || []
-          const selectedEnterprise = enterprises[Math.floor(idNum / 2) % enterprises.length] || "Enterprise"
-          
-          // Create unique rooftop name: Enterprise + City + Suffix
-          const city = cityNames[idNum % cityNames.length]
-          const suffix = locationSuffixes[idNum % locationSuffixes.length]
-          
-          // Use enterprise base name (remove common suffixes like "Motors", "Auto", etc.)
-          const enterpriseBase = selectedEnterprise.split(' ')[0] // Take first word
-          
-          return `${enterpriseBase} ${city} ${suffix}`
-        })(),
-        logo: "/placeholder-logo.png",
-        obProgress: data.obProgress, // Use actual progress from rooftop data
-        arr: data.arr, // Use actual ARR from rooftop data
-        contractedARR: data.name === 'No Data Example Dealership' ? 0 : (handleNullValue(data.arr, 0)), // Use actual ARR as contracted ARR
-        vinsAlloted: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(vinsAlloted, "-"),
-        oneTimePurchase: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(oneTimePurchase, "-"),
-        addons: data.name === 'No Data Example Dealership' ? [] : addons,
-        contractedRooftops: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(contractedRooftops, "-"),
-        potentialRooftops: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(potentialRooftops, "-"),
-        paymentsFrequency: data.name === 'No Data Example Dealership' ? "N/A" as PaymentFrequency : paymentsFrequency,
-        lockinPeriod: data.name === 'No Data Example Dealership' ? "N/A" : lockinPeriod,
-        
-        // Generate first payment date (1-3 months after contracted date)
-        firstPaymentDate: (() => {
-          if (data.name === 'No Data Example Dealership') return "-"
-          const contractDate = new Date(formattedDate)
-          const firstPaymentDate = new Date(contractDate)
-          const daysToAdd = Math.floor(Math.random() * 90) + 30 // 30-120 days after contract
-          firstPaymentDate.setDate(firstPaymentDate.getDate() + daysToAdd)
-          const dateString = firstPaymentDate.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-          })
-          return handleNullValue(dateString, "-")
-        })(),
-        
-        // Generate first payment amount (10-50% of contracted ARR divided by payment frequency)
-        firstPaymentAmount: (() => {
-          if (data.name === 'No Data Example Dealership') return "-"
-          const baseAmount = data.arr * (Math.random() * 0.4 + 0.1) // 10-50% of ARR
-          // Adjust based on payment frequency
-          const frequencyMultipliers: Record<PaymentFrequency, number> = {
-            'Monthly': baseAmount / 12,
-            'Quarterly': baseAmount / 4,
-            'Half Yearly': baseAmount / 2,
-            'Yearly': baseAmount
-          }
-          const amount = Math.round(frequencyMultipliers[paymentsFrequency] ?? baseAmount / 12)
-          return handleNullValue(amount, "-")
-        })(),
-        
-        ageing: data.ageing, // Use actual ageing from rooftop data
-        accountExecutivePOC: data.name === 'No Data Example Dealership' ? "N/A" : handleNullValue(data.obPoc.name, "-"), // Use actual POC name as Account Executive POC
-        financePOC: (() => {
-          if (data.name === 'No Data Example Dealership') return "N/A"
-          const names = [
-            "Emily Rodriguez", "David Chen", "Sarah Johnson", "Michael Brown", "Jessica Lee",
-            "Robert Davis", "Amanda Wilson", "James Taylor", "Lisa Anderson", "Kevin White",
-            "Rachel Garcia", "Christopher Martinez", "Jennifer Thompson", "Daniel Harris",
-            "Nicole Clark", "Anthony Lewis", "Stephanie Walker", "Matthew Hall", "Ashley Young"
-          ]
-          const selectedName = names[idNum % names.length]
-          return handleNullValue(selectedName, "-")
-        })(), // Random finance POC name
-        
-        // Generate Tax ID (realistic format)
-        taxID: (() => {
-          if (data.name === 'No Data Example Dealership') return "N/A"
-          const formats = [
-            `TAX-${String(idNum).padStart(6, '0')}`,
-            `${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 9000 + 1000)}-${Math.floor(Math.random() * 900 + 100)}`,
-            `EIN-${Math.floor(Math.random() * 90 + 10)}-${Math.floor(Math.random() * 9000000 + 1000000)}`
-          ]
-          const selectedFormat = formats[idNum % formats.length]
-          return handleNullValue(selectedFormat, "-")
-        })(),
-        
-        // Generate T&Cs Edited status (70% No, 30% Yes for realistic distribution)
-        termsAndConditionsEdited: Math.random() < 0.3,
-        
-        // Generate Contract Source (80% Dealhub, 20% Exception for realistic distribution)
-        contractSource: Math.random() < 0.8 ? 'Dealhub' : 'Exception',
-        
-        stage: (() => {
-          // If subStage is Drop Off, set stage to Drop Off regardless of status
-          if (data.subStage === "Drop Off") {
-            return "Drop Off"
-          }
-          // Otherwise use actual status from rooftop data
-          return data.status || "Contract Initiated"
-        })(),
-        subStage: (() => {
-          const stage = data.status || "Contract Initiated"
-          // Use existing subStage if available, but validate it against correct options
-          if (data.subStage && subStageOptions.includes(data.subStage)) {
-            return data.subStage
-          }
-          // Sub stage logic based on stage - use only valid subStageOptions
-          if (stage === "Drop Off") {
-            return "Drop Off" // Drop Off stage should have Drop Off sub stage
-          } else if (stage === "Contracted" || stage === "Onboarding") {
-            // For contracted/onboarding stages, randomly assign from valid progression options
-            const contractedSubStages = ["Meet Pending", "Meet Scheduled", "Meet Done"]
-            return contractedSubStages[idNum % contractedSubStages.length]
-          } else {
-            return "NA" // For all pre-contracted stages
-          }
-        })(),
-        type: typeOptions[idNum % typeOptions.length],
-        subType: subTypeOptions[idNum % subTypeOptions.length],
-        region: regionOptions[idNum % regionOptions.length],
-        country: 'USA',
-        state: 'CA',
-        city: 'Los Angeles',
-        contractedDate: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(formattedDate, "-"),
-        contractPeriod: data.name === 'No Data Example Dealership' ? "-" : handleNullValue(contractPeriod, "-"),
-        sla: idNum % 4 === 0 
-          ? { status: "Breached", daysBreached: Math.floor(Math.random() * 10) + 1 }
-          : { status: "On Track" },
-        teamId: `${11024210 + index}`,
-        enterpriseId: `${11024210 + index}`,
-        products: (() => {
-          if (data.name === 'No Data Example Dealership') return ["N/A"]
-          const products = data.productSuite.length > 0 ? data.productSuite : ["Studio AI"]
-          return products.map(product => handleNullValue(product, "-"))
-        })(),
-        plan: (() => {
-          if (data.name === 'No Data Example Dealership') return ["N/A"]
-          // Assign a plan based on index for variety
-          const planIndex = idNum % planOptions.length
-          return [planOptions[planIndex]]
-        })(),
-        media: (() => {
-          if (data.name === 'No Data Example Dealership') return ["N/A"]
-          // Use actual media from rooftop data, fallback to a subset of media options
-          const availableMedia = data.products.length > 0 ? data.products : ["Images"]
-          return availableMedia.map(item => {
-            // Map the existing product types to media types
-            if (item.includes("360")) return "360 Spin"
-            if (item.includes("Video") || item.includes("video")) return "Video Tour"
-            return "Images"
-          })
-        })(),
-        tat: data.tat, // Use actual TAT from rooftop data
-        platform: platformOptions[idNum % platformOptions.length] // Map to platform options
-      }
-    })
-  }, [rooftopData])
+    return apiData
+  }, [apiData])
 
   const filteredData = useMemo(() => {
     let filtered = convertedData.filter((item) => {
-      const matchesSearch = searchValue === "" || 
-        item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        item.teamId.includes(searchValue) ||
-        item.enterpriseId.includes(searchValue)
-      
-      const matchesAccountExecutivePOC = filterValues.accountExecutivePOC === "All AE POC" || item.accountExecutivePOC === filterValues.accountExecutivePOC
-      const matchesFinancePOC = filterValues.financePOC === "All Finance POC" || item.financePOC === filterValues.financePOC
-      const matchesPlan = filterValues.plan === "All Plan" || (item.plan && item.plan.includes(filterValues.plan))
-      const matchesProduct = filterValues.product === "All Product" || item.products.includes(filterValues.product)
-      const matchesType = filterValues.type === "All Type" || item.type === filterValues.type
-      const matchesSubType = filterValues.subType === "All Sub Type" || item.subType === filterValues.subType
-      const matchesSubStage = filterValues.subStage === "All Sub Stage" || item.subStage === filterValues.subStage
-      const matchesPaymentFrequency = filterValues.paymentFrequency === "All Payment Frequency" || item.paymentsFrequency === filterValues.paymentFrequency
-      const matchesContractSource = filterValues.contractSource === "All Contract Source" || item.contractSource === filterValues.contractSource
-      const matchesRegion = filterValues.region === "All Region" || item.region === filterValues.region
-      
-      // Quick filter: Contracted Only
+      // Only client-side contracted only filter (search is now server-side)
       const matchesContractedOnly = !filterValues.contractedOnly || item.stage === "Contracted"
-      
-      // Quick filter: Contracted Date
-      const matchesContractedDate = (() => {
-        if (!filterValues.contractedDate.from && !filterValues.contractedDate.to) return true
-        if (!item.contractedDate) return false
-        
-        const itemDate = new Date(item.contractedDate)
-        const fromDate = filterValues.contractedDate.from ? new Date(filterValues.contractedDate.from) : null
-        const toDate = filterValues.contractedDate.to ? new Date(filterValues.contractedDate.to) : null
-        
-        if (fromDate && itemDate < fromDate) return false
-        if (toDate && itemDate > toDate) return false
-        
-        return true
-      })()
 
-      return matchesSearch && matchesAccountExecutivePOC && matchesFinancePOC && matchesPlan && 
-             matchesProduct && matchesType && matchesSubType && matchesSubStage && matchesPaymentFrequency && 
-             matchesContractSource && matchesRegion && matchesContractedOnly && matchesContractedDate
+      return matchesContractedOnly
     })
 
     // Apply sorting
@@ -767,7 +534,7 @@ export function RooftopsTable({
     }
 
     return filtered
-  }, [convertedData, searchValue, filterValues, sortField, sortDirection])
+  }, [convertedData, filterValues.contractedOnly, sortField, sortDirection])
 
   // Selection handlers and state (after filteredData is defined)
   const handleSelectAll = (checked: boolean) => {
@@ -993,7 +760,9 @@ export function RooftopsTable({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
               <span className="text-sm text-gray-600">No. of Rooftops:</span>
-              <span className="text-sm font-semibold text-primary-600">{filteredData.length.toLocaleString()}</span>
+              <span className="text-sm font-semibold text-primary-600">
+                {totalRecords > 0 ? totalRecords.toLocaleString() : filteredData.length.toLocaleString()}
+              </span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
               <span className="text-sm text-gray-600">Total Contracted ARR</span>
@@ -1071,20 +840,36 @@ export function RooftopsTable({
               onSelectAll={handleSelectAll}
             />
             <tbody>
-              {filteredData.length === 0 ? (
+              {loading ? (
+                <SkeletonLoader rows={10} columns={31} />
+              ) : error ? (
                 <tr>
-                  <td colSpan={28} className="px-3 py-8 text-center text-gray-500">
-                    {searchValue || Object.entries(filterValues).some(([key, value]) => {
-                        if (key === 'contractedOnly') return value === true
-                        if (key === 'contractedDate') return value.from !== "" || value.to !== ""
-                        return typeof value === 'string' && !value.startsWith("All")
-                      })
+                  <td colSpan={31} className="px-3 py-8 text-center text-red-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>Error loading data: {error}</div>
+                      <button 
+                        onClick={() => window.location.reload()} 
+                        className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan={31} className="px-3 py-8 text-center text-gray-500">
+                    {searchValue || filterValues.contractedOnly
                       ? "No matching rooftops found"
                       : "No rooftops data available"}
                   </td>
                 </tr>
               ) : (
-                filteredData.map((row) => (
+                <>
+                  {filteredData.map((row) => (
                   <RooftopsTableRow 
                     key={row.id} 
                     data={row} 
@@ -1093,11 +878,20 @@ export function RooftopsTable({
                     isSelected={selectedEnterprises.has(row.id)}
                     onSelectEnterprise={handleSelectEnterprise}
                   />
-                ))
+                  ))}
+                  {loadingMore && (
+                    <SkeletonLoader rows={5} columns={31} />
+                  )}
+                </>
               )}
             </tbody>
           </table>
         </div>
+        
+        {/* Infinite Scroll Indicator */}
+        {loadingMore && !loading && (
+          <InfiniteScrollSkeleton />
+        )}
       </div>
       
       {/* Bulk Action Confirmation Modal */}
@@ -1596,4 +1390,4 @@ export function RooftopsTable({
   )
 }
 
-export type { RooftopsData }
+export type { RooftopsData } from "@/app/types"
