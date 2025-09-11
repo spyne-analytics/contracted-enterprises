@@ -764,15 +764,6 @@ export function RooftopsTable({
                 {totalRecords > 0 ? totalRecords.toLocaleString() : filteredData.length.toLocaleString()}
               </span>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
-              <span className="text-sm text-gray-600">Total Contracted ARR</span>
-              <span className="text-sm font-semibold text-purple-600">
-                ${(filteredData.reduce((sum, data) => {
-                  const arr = typeof data.contractedARR === 'number' ? data.contractedARR : 0;
-                  return sum + arr;
-                }, 0) / 1000000).toFixed(2)} M
-              </span>
-            </div>
           </div>
         </div>
         
