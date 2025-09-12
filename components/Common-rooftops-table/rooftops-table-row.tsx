@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react"
 import type { RooftopsData } from "./rooftops-table"
+import { ApiService } from "@/app/services/api"
 
 interface RooftopsTableRowProps {
   data: RooftopsData
@@ -7,9 +8,10 @@ interface RooftopsTableRowProps {
   onRooftopUpdate: (rooftopId: string, updates: any) => void
   isSelected: boolean
   onSelectEnterprise: (id: string, checked: boolean) => void
+  onShowToast?: (message: string) => void
 }
 
-export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSelected, onSelectEnterprise }: RooftopsTableRowProps) {
+export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSelected, onSelectEnterprise, onShowToast }: RooftopsTableRowProps) {
   // Helper function to display "-" for null, undefined, empty string, or blank values
   const displayValue = (value: any): string => {
     if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
@@ -224,8 +226,10 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     const [showCancellationModal, setShowCancellationModal] = useState(false)
     const [pendingSubStage, setPendingSubStage] = useState<string | null>(null)
     const [showSuccessToast, setShowSuccessToast] = useState(false)
+    const [successToastMessage, setSuccessToastMessage] = useState("Details updated successfully")
     const [showScheduleForm, setShowScheduleForm] = useState(false)
     const [cancellationReason, setCancellationReason] = useState("")
+    const [isApiLoading, setIsApiLoading] = useState(false)
     
     // Form state
     const [inputPlatforms, setInputPlatforms] = useState<string[]>(["FTP"])
@@ -248,21 +252,13 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     const [obCallNotRequired, setObCallNotRequired] = useState(false)
     const [inviteEmails, setInviteEmails] = useState("")
     const [participants, setParticipants] = useState([
-      { name: "Onboarding Team", email: "ob@spyne.ai", type: "team" },
-      { name: "Abhijeet Kaushik", email: "abhijeet.kaushik@spyne.ai", type: "user" },
-      { name: "vishal.singh@spyne.ai", email: "vishal.singh@spyne.ai", type: "user" },
-      { name: "richa.lakshmi+80@spyne.co.in", email: "richa.lakshmi+80@spyne.co.in", type: "user" }
+      { name: "Onboarding Team", email: "ob@spyne.ai", type: "team" }
     ])
 
     // OB call not required form state
-    const obManagerOptions = [
-      'Prakash Kumar (prakash.kumar@spyne.ai)',
-      'avinash.jha (avinash.jha@spyne.ai)',
-      'kanishk.sharma (kanishk.sharma@spyne.ai)',
-      'ritika.agarwal (ritika.agarwal@spyne.ai)'
-    ]
-    const [obManager, setObManager] = useState(obManagerOptions[0])
-    const [selectedOnboardingManager, setSelectedOnboardingManager] = useState(obManagerOptions[0])
+    const [obManagerOptions, setObManagerOptions] = useState<Array<{ name: string; email: string; userId: string }>>([])
+    const [selectedObManager, setSelectedObManager] = useState<{ name: string; email: string; userId: string } | null>(null)
+    const [selectedOnboardingManager, setSelectedOnboardingManager] = useState("")
     const communicationOptions = ['Email', 'Phone', 'Whatsapp', 'Slack']
     const [modeOfCommunication, setModeOfCommunication] = useState<string[]>(['Email'])
     const [obnrEmail, setObnrEmail] = useState("")
@@ -326,6 +322,27 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       { label: '1 hour', minutes: 60 },
     ]
 
+    // Helpers: validate and add invite emails
+    const isValidEmail = (email: string): boolean => {
+      const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      return pattern.test(email)
+    }
+
+    const addInviteEmails = () => {
+      if (!inviteEmails.trim()) return
+      // Split by comma or whitespace
+      const raw = inviteEmails.split(/[,\s]+/).map(e => e.trim()).filter(Boolean)
+      const valid = raw.filter(isValidEmail)
+      if (valid.length === 0) return
+
+      // Avoid duplicates by email
+      const existing = new Set(participants.map(p => p.email.toLowerCase()))
+      const toAdd = valid.filter(e => !existing.has(e.toLowerCase())).map(e => ({ name: e, email: e, type: "user" as const }))
+      if (toAdd.length === 0) { setInviteEmails(""); return }
+      setParticipants(prev => [...prev, ...toAdd])
+      setInviteEmails("")
+    }
+
     const parseTimeToMinutes = (t: string): number => {
       const [time, mer] = t.split(' ')
       const [hh, mm] = time.split(':').map(Number)
@@ -349,6 +366,28 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       const end = start + dur
       setEndTime(formatMinutesToTime(end))
     }, [startTime, duration])
+
+    // Fetch onboarding managers when modal opens
+    useEffect(() => {
+      if ((showHandoverModal && obCallNotRequired) || showDoneConfirm) {
+        if (obManagerOptions.length === 0) {
+          const fetchObManagers = async () => {
+            try {
+              const response = await ApiService.getOnboardingManagers()
+              if (response.error === false && response.data) {
+                setObManagerOptions(response.data)
+                if (response.data.length > 0 && showHandoverModal && obCallNotRequired) {
+                  setSelectedObManager(response.data[0])
+                }
+              }
+            } catch (error) {
+              console.error('Failed to fetch onboarding managers:', error)
+            }
+          }
+          fetchObManagers()
+        }
+      }
+    }, [showHandoverModal, obCallNotRequired, showDoneConfirm, obManagerOptions.length])
     
     // Get available sub-stage options based on current stage and sub-stage
     const getAvailableSubStages = () => {
@@ -436,14 +475,182 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       setShowScheduleForm(true)
     }
     
-    const handleScheduleConfirm = () => {
-      // Persist the sub-stage update now that scheduling step is confirmed
-      if (pendingSubStage) {
-        onRooftopUpdate(rooftopId, { subStage: pendingSubStage })
-        setPendingSubStage(null)
+    const handleScheduleConfirm = async () => {
+      // Prepare handover details payload
+      const handoverPayload = {
+        enterprise_id: data.enterpriseId,
+        team_ids: [data.teamId],
+        languages_spoken: clientLanguages,
+        notes: importantNotes,
+        input_medium: {
+          ims_dms: inputDMS,
+          website_provider: inputWebsiteProvider,
+          platforms: inputPlatforms
+        },
+        output_medium: {
+          ims_dms: outputDMS,
+          website_provider: outputWebsiteProvider,
+          platforms: outputPlatforms
+        }
       }
+
+      try {
+        setIsApiLoading(true) // Start loading
+        
+        if (obCallNotRequired) {
+          // OB call not required flow - go directly to Meet Done
+          if (!selectedObManager) {
+            alert('Please select an onboarding manager.')
+            setIsApiLoading(false)
+            return
+          }
+          
+          if (!obnrReason.trim()) {
+            alert('Please provide a reason.')
+            setIsApiLoading(false)
+            return
+          }
+
+          const obNotRequiredPayload = {
+            enterprise_id: data.enterpriseId,
+            team_id: data.teamId,
+            team_name: data.name,
+            sub_stage: "Meet Done",
+            call_required: false,
+            notes: obnrReason,
+            ob_manager: selectedObManager.userId
+          }
+
+          console.log('Starting combined API calls for handover and OB not required...')
+          
+          // Call both APIs using Promise.all
+          const [handoverResponse, obNotRequiredResponse] = await ApiService.updateHandoverAndObNotRequired(
+            handoverPayload,
+            obNotRequiredPayload
+          )
+          
+          console.log('Both APIs completed successfully')
+          
+          // Handle Meet Done case - remove from table and show toast
+          if (obNotRequiredPayload.sub_stage === "Meet Done") {
+            // Remove the entry from table by updating parent
+            onRooftopUpdate(rooftopId, { shouldRemove: true })
+            
+            // Show toast that rooftop moved to onboarding
+            setSuccessToastMessage("Rooftop moved to onboarding")
+            setShowSuccessToast(true)
+            setTimeout(() => setShowSuccessToast(false), 3000)
+          }
+          
+        } else {
+          // Regular scheduling flow
+          // Prepare schedule payload
+          const formatDateForAPI = (dateString: string, timeString: string, timezone: string) => {
+            // Parse the date string like "Thu, 11 Sep 2025"
+            const dateParts = dateString.split(', ')[1].split(' ')
+            const day = dateParts[0]
+            const month = dateParts[1]
+            const year = dateParts[2]
+            
+            // Convert month name to number
+            const monthMap: { [key: string]: string } = {
+              'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
+              'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
+              'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+            }
+            
+            // Convert time to 24-hour format
+            const [time, period] = timeString.split(' ')
+            const [hours, minutes] = time.split(':')
+            let hour24 = parseInt(hours)
+            if (period === 'PM' && hour24 !== 12) hour24 += 12
+            if (period === 'AM' && hour24 === 12) hour24 = 0
+            
+            return `${year}-${monthMap[month]}-${day.padStart(2, '0')} ${hour24.toString().padStart(2, '0')}:${minutes}`
+          }
+
+          const startTimeFormatted = formatDateForAPI(selectedDate, startTime, selectedTimezone)
+          const endTimeFormatted = formatDateForAPI(selectedDate, endTime, selectedTimezone)
+          
+          // Extract timezone from selectedTimezone (e.g., "Asia/Kolkata" from "Asia/Kolkata (IST)")
+          const timezoneForAPI = selectedTimezone.split(' ')[0]
+          
+          // Get attendee emails from participants; always include ob@spyne.ai
+          const attendeeSet = new Set<string>(['ob@spyne.ai'])
+          participants.filter(p => p.type === "user").forEach(p => attendeeSet.add(p.email))
+          const attendeeEmails = Array.from(attendeeSet)
+
+          // Map UI sub_stage to API sub_stage
+          const getApiSubStage = (uiSubStage: string) => {
+            if (uiSubStage === "Meet Reschedule") return "Meet Rescheduled"
+            return uiSubStage // "Meet Scheduled" stays the same
+          }
+
+          const schedulePayload = {
+            start_time: startTimeFormatted,
+            end_time: endTimeFormatted,
+            time_zone: timezoneForAPI,
+            attendees: attendeeEmails,
+            enterprise_id: data.enterpriseId,
+            team_id: data.teamId,
+            team_name: data.name,
+            duration: durationOptions.find(d => d.label === duration)?.minutes || 30,
+            sub_stage: getApiSubStage(pendingSubStage || "Meet Scheduled"), // Map UI to API sub_stage
+            call_required: true,
+            notes: rescheduleReason || ""
+          }
+
+          // Optimistically update UI to the target sub_stage immediately
+          onRooftopUpdate(rooftopId, { subStage: (pendingSubStage === "Meet Reschedule") ? "Meet Scheduled" : (pendingSubStage || "Meet Scheduled") })
+
+          console.log('Starting combined API calls for handover and scheduling...')
+          
+          // Call both APIs using Promise.all
+          const [handoverResponse, scheduleResponse] = await ApiService.updateHandoverAndSchedule(
+            handoverPayload,
+            schedulePayload
+          )
+          
+          console.log('Both APIs completed successfully')
+          
+          // Handle different sub_stage cases based on API response
+          const responseSubStage = schedulePayload.sub_stage
+          
+          if (responseSubStage === "Meet Scheduled") {
+            // Case 1: Meet was scheduled - update local UI state
+            onRooftopUpdate(rooftopId, { subStage: "Meet Scheduled" })
+        setPendingSubStage(null)
+            setSuccessToastMessage("Meeting scheduled successfully")
+          } else if (responseSubStage === "Meet Rescheduled") {
+            // Case 2: Meet was rescheduled - UI should show 'Meet Scheduled' again
+            onRooftopUpdate(rooftopId, { subStage: "Meet Scheduled" })
+            setPendingSubStage(null)
+            setSuccessToastMessage("Meeting rescheduled successfully")
+          } else if (responseSubStage === "Meet Done") {
+            // Case 3: Meet Done - remove from table and show toast
+            onRooftopUpdate(rooftopId, { shouldRemove: true })
+            setSuccessToastMessage("Rooftop moved to onboarding")
+          } else if (pendingSubStage) {
+            // Fallback: map UI sub_stage to final display; reschedule should appear as scheduled
+            onRooftopUpdate(rooftopId, { subStage: (pendingSubStage === "Meet Reschedule") ? "Meet Scheduled" : pendingSubStage })
+            setPendingSubStage(null)
+            setSuccessToastMessage("Details updated successfully")
+          }
+        }
+        
       setShowHandoverModal(false)
       setShowScheduleForm(false)
+        
+        // Show success message
+        setShowSuccessToast(true)
+        setTimeout(() => setShowSuccessToast(false), 3000)
+        
+      } catch (error) {
+        console.error('Failed to update handover and schedule:', error)
+        alert('Failed to update handover details and schedule. Please try again.')
+      } finally {
+        setIsApiLoading(false) // Stop loading
+      }
     }
     
     const handleBackToHandover = () => {
@@ -455,34 +662,150 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       setShowHandoverModal(false)
     }
 
-    const handleDoneConfirm = () => {
+    const handleDoneConfirm = async () => {
       if (!selectedOnboardingManager) {
         return // Don't proceed if no onboarding manager is selected
       }
       
-      // Update both sub stage and overall stage, including onboarding manager
-      onRooftopUpdate(rooftopId, { 
-        subStage: 'Meet Done', 
-        status: 'Onboarding',
-        onboardingManager: selectedOnboardingManager
-      })
+      try {
+        setIsApiLoading(true) // Start loading
+        
+        // Find the selected manager's details from obManagerOptions using userId
+        const selectedManager = obManagerOptions.find(manager => manager.userId === selectedOnboardingManager)
+        if (!selectedManager) {
+          alert('Please select a valid onboarding manager.')
+          setIsApiLoading(false)
+          return
+        }
+
+        const meetDonePayload = {
+          enterprise_id: data.enterpriseId,
+          team_id: data.teamId,
+          team_name: data.name,
+          sub_stage: "Meet Done",
+          call_required: false,
+          notes: "", // No notes for direct Meet Done
+          ob_manager: selectedManager.userId
+        }
+
+        console.log('Calling Meet Done API...')
+        
+        // Call the API to update team sub-stage to Meet Done
+        const response = await ApiService.updateTeamSubStageObNotRequired(meetDonePayload)
+        
+        console.log('Meet Done API completed successfully')
+        
+        // Meet Done case - remove from table and show toast
+        onRooftopUpdate(rooftopId, { shouldRemove: true })
+        
+        // Show toast that rooftop moved to onboarding
+        setSuccessToastMessage("Rooftop moved to onboarding")
+        setShowSuccessToast(true)
+        setTimeout(() => setShowSuccessToast(false), 3000)
+        
       setPendingSubStage(null)
       setShowDoneConfirm(false)
-      setSelectedOnboardingManager(obManagerOptions[0]) // Reset to default
+        setSelectedOnboardingManager("") // Reset to default
+        
+      } catch (error) {
+        console.error('Failed to mark meet as done:', error)
+        alert('Failed to mark meet as done. Please try again.')
+      } finally {
+        setIsApiLoading(false) // Stop loading
+      }
     }
     const handleDoneCancel = () => {
       setPendingSubStage(null)
       setShowDoneConfirm(false)
-      setSelectedOnboardingManager(obManagerOptions[0]) // Reset to default
+      setSelectedOnboardingManager("") // Reset to default
     }
 
-    const handleCancellationConfirm = () => {
-      if (cancellationReason.trim()) {
+    const handleDropOffConfirm = async () => {
+      try {
+        setIsApiLoading(true) // Start loading
+
+        const dropOffPayload = {
+          enterprise_id: data.enterpriseId,
+          team_id: data.teamId,
+          team_name: data.name,
+          sub_stage: "Drop off"
+        }
+
+        console.log('Calling Drop off API...')
+        
+        // Call the simple API to update team sub-stage to Drop off
+        const response = await ApiService.updateTeamSubStageSimple(dropOffPayload)
+        
+        console.log('Drop off API completed successfully')
+        
+        // Drop off case - remove from table
+        onRooftopUpdate(rooftopId, { shouldRemove: true })
+        
+        // Show success toast (prefer parent-level toast if provided)
+        if (onShowToast) {
+          onShowToast("Rooftop marked as Drop-Off")
+        } else {
+          setSuccessToastMessage("Rooftop marked as Drop-Off")
+          setShowSuccessToast(true)
+          setTimeout(() => setShowSuccessToast(false), 3000)
+        }
+        
+        setPendingSubStage(null)
+        setShowCancelConfirm(false)
+        
+      } catch (error) {
+        console.error('Failed to mark as drop off:', error)
+        alert('Failed to mark as drop off. Please try again.')
+      } finally {
+        setIsApiLoading(false) // Stop loading
+      }
+    }
+
+    const handleDropOffCancel = () => {
+      setPendingSubStage(null)
+      setShowCancelConfirm(false)
+    }
+
+    const handleCancellationConfirm = async () => {
+      if (!cancellationReason.trim()) {
+        return // Don't proceed if no cancellation reason is provided
+      }
+      
+      try {
+        setIsApiLoading(true) // Start loading
+
+        const cancellationPayload = {
+          enterprise_id: data.enterpriseId,
+          team_id: data.teamId,
+          team_name: data.name,
+          sub_stage: "Meet Cancelled",
+          notes: cancellationReason.trim()
+        }
+
+        console.log('Calling Meet Cancelled API...')
+        
+        // Call the API to update team sub-stage to Meet Cancelled with notes
+        const response = await ApiService.updateTeamSubStageWithNotes(cancellationPayload)
+        
+        console.log('Meet Cancelled API completed successfully')
+        
         // Update sub stage to Meet Cancelled
         onRooftopUpdate(rooftopId, { subStage: 'Meet Cancelled' })
+        
+        // Show success toast
+        setSuccessToastMessage("Meeting cancelled successfully")
+        setShowSuccessToast(true)
+        setTimeout(() => setShowSuccessToast(false), 3000)
+        
         setPendingSubStage(null)
         setShowCancellationModal(false)
         setCancellationReason("")
+        
+      } catch (error) {
+        console.error('Failed to cancel meet:', error)
+        alert('Failed to cancel meet. Please try again.')
+      } finally {
+        setIsApiLoading(false) // Stop loading
       }
     }
 
@@ -829,12 +1152,18 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Onboarding Manager*</label>
                           <select
-                            value={obManager}
-                            onChange={(e) => setObManager(e.target.value)}
+                            value={selectedObManager?.userId || ""}
+                            onChange={(e) => {
+                              const selected = obManagerOptions.find(opt => opt.userId === e.target.value)
+                              setSelectedObManager(selected || null)
+                            }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           >
+                            <option value="" disabled>Select Onboarding Manager</option>
                             {obManagerOptions.map((opt) => (
-                              <option key={opt} value={opt}>{opt}</option>
+                              <option key={opt.userId} value={opt.userId}>
+                                {opt.name} ({opt.email})
+                              </option>
                             ))}
                           </select>
                         </div>
@@ -863,9 +1192,19 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                           placeholder="Add email addresses to invite guests"
                           value={inviteEmails}
                           onChange={(e) => setInviteEmails(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              addInviteEmails()
+                            }
+                          }}
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
-                        <button className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <button 
+                          type="button"
+                          onClick={addInviteEmails}
+                          className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
                           Invite
                         </button>
                       </div>
@@ -984,22 +1323,46 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                 {showScheduleForm && (
                   <button
                     onClick={handleBackToHandover}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  disabled={isApiLoading}
+                  className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                    isApiLoading 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                  }`}
                   >
                     Back
                   </button>
                 )}
                 <button
                   onClick={handleModalCancel}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                disabled={isApiLoading}
+                className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                  isApiLoading 
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    : 'text-gray-700 bg-white hover:bg-gray-50'
+                }`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={showScheduleForm ? handleScheduleConfirm : handleModalConfirm}
-                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-primary-600 border border-transparent rounded-md hover:from-purple-700 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                >
-                  {showScheduleForm ? (obCallNotRequired ? 'Continue' : 'Schedule') : 'Continue'}
+                disabled={isApiLoading}
+                className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 flex items-center gap-2 ${
+                  isApiLoading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'text-white bg-gradient-to-r from-purple-600 to-primary-600 hover:from-purple-700 hover:to-primary-700'
+                }`}
+              >
+                {isApiLoading && (
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {isApiLoading 
+                  ? 'Processing...' 
+                  : (showScheduleForm ? (obCallNotRequired ? 'Continue' : 'Schedule') : 'Continue')
+                }
                 </button>
               </div>
             </div>
@@ -1026,8 +1389,11 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     required
                   >
+                    <option value="" disabled>Select Onboarding Manager</option>
                     {obManagerOptions.map((option) => (
-                      <option key={option} value={option}>{option}</option>
+                      <option key={option.userId} value={option.userId}>
+                        {option.name} ({option.email})
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -1035,20 +1401,31 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
                   onClick={handleDoneCancel}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  disabled={isApiLoading}
+                  className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                    isApiLoading 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDoneConfirm}
-                  disabled={!selectedOnboardingManager}
-                  className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                    selectedOnboardingManager
+                  disabled={!selectedOnboardingManager || isApiLoading}
+                  className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center gap-2 ${
+                    (selectedOnboardingManager && !isApiLoading)
                       ? 'text-white bg-primary-600 hover:bg-primary-700 focus:ring-primary-500'
                       : 'text-gray-400 bg-gray-300 cursor-not-allowed'
                   }`}
                 >
-                  Yes, Continue
+                  {isApiLoading && (
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {isApiLoading ? 'Processing...' : 'Yes, Continue'}
                 </button>
               </div>
             </div>
@@ -1067,16 +1444,32 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               </div>
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
-                  onClick={() => { setShowCancelConfirm(false); setPendingSubStage(null) }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  onClick={handleDropOffCancel}
+                  disabled={isApiLoading}
+                  className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                    isApiLoading 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                  }`}
                 >
                   No
                 </button>
                 <button
-                  onClick={() => { onRooftopUpdate(rooftopId, { subStage: 'Drop off', status: 'Drop off' }); setShowCancelConfirm(false); setPendingSubStage(null) }}
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  onClick={handleDropOffConfirm}
+                  disabled={isApiLoading}
+                  className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center gap-2 ${
+                    isApiLoading
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'text-white bg-primary-600 hover:bg-primary-700 focus:ring-primary-500'
+                  }`}
                 >
-                  Yes, Drop off
+                  {isApiLoading && (
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {isApiLoading ? 'Processing...' : 'Yes, Drop off'}
                 </button>
               </div>
             </div>
@@ -1111,20 +1504,31 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
                   onClick={handleCancellationCancel}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  disabled={isApiLoading}
+                  className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                    isApiLoading 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCancellationConfirm}
-                  disabled={!cancellationReason.trim()}
-                  className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                    cancellationReason.trim()
+                  disabled={!cancellationReason.trim() || isApiLoading}
+                  className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center gap-2 ${
+                    (cancellationReason.trim() && !isApiLoading)
                       ? 'text-white bg-red-600 hover:bg-red-700 focus:ring-red-500'
                       : 'text-gray-400 bg-gray-300 cursor-not-allowed'
                   }`}
                 >
-                  Cancel Meet
+                  {isApiLoading && (
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {isApiLoading ? 'Processing...' : 'Cancel Meet'}
                 </button>
               </div>
             </div>
@@ -1134,6 +1538,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         {/* Success Toast */}
         <SuccessToast 
           show={showSuccessToast} 
+          message={successToastMessage}
           onClose={() => setShowSuccessToast(false)} 
         />
       </div>
@@ -1410,7 +1815,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
 }
 
 // Success Toast Component
-const SuccessToast = ({ show, onClose }: { show: boolean; onClose: () => void }) => {
+const SuccessToast = ({ show, message, onClose }: { show: boolean; message: string; onClose: () => void }) => {
   if (!show) return null
   
   return (
@@ -1419,7 +1824,7 @@ const SuccessToast = ({ show, onClose }: { show: boolean; onClose: () => void })
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
         </svg>
-        <span>Details updated successfully</span>
+        <span>{message}</span>
         <button
           onClick={onClose}
           className="text-white hover:text-green-200 ml-2"

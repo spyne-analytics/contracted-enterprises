@@ -194,4 +194,286 @@ export class ApiService {
       total: response.data.totalCount || response.data.teams.length
     }
   }
+
+  // Update handover details API
+  static async updateHandoverDetails(payload: {
+    enterprise_id: string
+    team_ids: string[]
+    languages_spoken: string[]
+    notes: string
+    input_medium: {
+      ims_dms: string
+      website_provider: string
+      platforms: string[]
+    }
+    output_medium: {
+      ims_dms: string
+      website_provider: string
+      platforms: string[]
+    }
+  }): Promise<{ message: string; error: boolean; code: string; details: any; data: any }> {
+    return this.makeRequest('/contracting/onboarding/update-handover-details', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  }
+
+  // Update team sub-stage API (for scheduling)
+  static async updateTeamSubStage(payload: {
+    start_time: string
+    end_time: string
+    time_zone: string
+    attendees: string[]
+    enterprise_id: string
+    team_id: string
+    team_name: string
+    duration: number
+    sub_stage: string
+    call_required: boolean
+    notes?: string
+  }): Promise<{ message: string; error: boolean; code: string; details: any; data: any }> {
+    // Use different base URL for this endpoint
+    const url = 'https://uat-api.spyne.xyz/credit/v2/enterprise/team/update-team-sub-stage'
+    
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${BEARER_TOKEN}`,
+      'Cookie': 'sails.sid=s%3ARUPPIQWtH0U4n0ir6bE2Cw2zF9iThl6p.rQHQyWTMYHbQRGDmKF5GbJLLHx3vxs6FUqmpfGpoxRw; sails.sid=s%3A82gbG46nbIAMFz8nOKbartgYNnV-mCF1.Hsx68ZhziPctFZsHUUaVnVOQRZDZd%2B8wOiDggDLzcyg'
+    }
+
+    console.log('Making API request to:', url)
+    console.log('Request payload:', JSON.stringify(payload))
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: defaultHeaders,
+      body: JSON.stringify(payload),
+    })
+
+    console.log('API response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('API error response:', errorText)
+      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('API response data:', data)
+    return data
+  }
+
+  // Get onboarding managers API
+  static async getOnboardingManagers(): Promise<{ message: string; error: boolean; code: string; details: any; data: Array<{ name: string; email: string; userId: string }> }> {
+    // Use different base URL for this endpoint
+    const url = 'https://uat-api.spyne.xyz/console/v3/contracting/get-enterprise-poc-details?type_of_poc=ob&batchSize=100&offset=1'
+    
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${BEARER_TOKEN}`,
+      'Cookie': 'sails.sid=s%3ARUPPIQWtH0U4n0ir6bE2Cw2zF9iThl6p.rQHQyWTMYHbQRGDmKF5GbJLLHx3vxs6FUqmpfGpoxRw; sails.sid=s%3A82gbG46nbIAMFz8nOKbartgYNnV-mCF1.Hsx68ZhziPctFZsHUUaVnVOQRZDZd%2B8wOiDggDLzcyg'
+    }
+
+    console.log('Making API request to:', url)
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      headers: defaultHeaders,
+    })
+
+    console.log('API response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('API error response:', errorText)
+      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('API response data:', data)
+    return data
+  }
+
+  // Update team sub-stage API for simple sub-stage changes (Drop off)
+  static async updateTeamSubStageSimple(payload: {
+    enterprise_id: string
+    team_id: string
+    team_name: string
+    sub_stage: string
+  }): Promise<{ message: string; error: boolean; code: string; details: any; data: any }> {
+    // Use different base URL for this endpoint
+    const url = 'https://uat-api.spyne.xyz/credit/v2/enterprise/team/update-team-sub-stage'
+    
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${BEARER_TOKEN}`,
+      'Cookie': 'sails.sid=s%3ARUPPIQWtH0U4n0ir6bE2Cw2zF9iThl6p.rQHQyWTMYHbQRGDmKF5GbJLLHx3vxs6FUqmpfGpoxRw; sails.sid=s%3A82gbG46nbIAMFz8nOKbartgYNnV-mCF1.Hsx68ZhziPctFZsHUUaVnVOQRZDZd%2B8wOiDggDLzcyg'
+    }
+
+    console.log('Making API request to:', url)
+    console.log('Request payload:', JSON.stringify(payload))
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: defaultHeaders,
+      body: JSON.stringify(payload),
+    })
+
+    console.log('API response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('API error response:', errorText)
+      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('API response data:', data)
+    return data
+  }
+
+  // Update team sub-stage API with notes (Meet Cancelled)
+  static async updateTeamSubStageWithNotes(payload: {
+    enterprise_id: string
+    team_id: string
+    team_name: string
+    sub_stage: string
+    notes: string
+  }): Promise<{ message: string; error: boolean; code: string; details: any; data: any }> {
+    // Use different base URL for this endpoint
+    const url = 'https://uat-api.spyne.xyz/credit/v2/enterprise/team/update-team-sub-stage'
+    
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${BEARER_TOKEN}`,
+      'Cookie': 'sails.sid=s%3ARUPPIQWtH0U4n0ir6bE2Cw2zF9iThl6p.rQHQyWTMYHbQRGDmKF5GbJLLHx3vxs6FUqmpfGpoxRw; sails.sid=s%3A82gbG46nbIAMFz8nOKbartgYNnV-mCF1.Hsx68ZhziPctFZsHUUaVnVOQRZDZd%2B8wOiDggDLzcyg'
+    }
+
+    console.log('Making API request to:', url)
+    console.log('Request payload:', JSON.stringify(payload))
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: defaultHeaders,
+      body: JSON.stringify(payload),
+    })
+
+    console.log('API response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('API error response:', errorText)
+      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('API response data:', data)
+    return data
+  }
+
+  // Update team sub-stage API for OB call not required (Meet Done)
+  static async updateTeamSubStageObNotRequired(payload: {
+    enterprise_id: string
+    team_id: string
+    team_name: string
+    sub_stage: string
+    call_required: boolean
+    notes: string
+    ob_manager: string
+  }): Promise<{ message: string; error: boolean; code: string; details: any; data: any }> {
+    // Use different base URL for this endpoint
+    const url = 'https://uat-api.spyne.xyz/credit/v2/enterprise/team/update-team-sub-stage'
+    
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${BEARER_TOKEN}`,
+      'Cookie': 'sails.sid=s%3ARUPPIQWtH0U4n0ir6bE2Cw2zF9iThl6p.rQHQyWTMYHbQRGDmKF5GbJLLHx3vxs6FUqmpfGpoxRw; sails.sid=s%3A82gbG46nbIAMFz8nOKbartgYNnV-mCF1.Hsx68ZhziPctFZsHUUaVnVOQRZDZd%2B8wOiDggDLzcyg'
+    }
+
+    console.log('Making API request to:', url)
+    console.log('Request payload:', JSON.stringify(payload))
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: defaultHeaders,
+      body: JSON.stringify(payload),
+    })
+
+    console.log('API response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('API error response:', errorText)
+      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('API response data:', data)
+    return data
+  }
+
+  // Combined API call for handover and scheduling
+  static async updateHandoverAndSchedule(
+    handoverPayload: Parameters<typeof ApiService.updateHandoverDetails>[0],
+    schedulePayload: Parameters<typeof ApiService.updateTeamSubStage>[0]
+  ): Promise<[any, any]> {
+    try {
+      console.log('Starting combined API calls...')
+      
+      // Run both APIs in parallel using Promise.all
+      const [handoverResponse, scheduleResponse] = await Promise.all([
+        this.updateHandoverDetails(handoverPayload),
+        this.updateTeamSubStage(schedulePayload)
+      ])
+
+      console.log('Handover API response:', handoverResponse)
+      console.log('Schedule API response:', scheduleResponse)
+
+      // Check if both APIs succeeded
+      if (handoverResponse.error === false && scheduleResponse) {
+        console.log('Both APIs completed successfully')
+        return [handoverResponse, scheduleResponse]
+      } else {
+        throw new Error('One or both APIs failed')
+      }
+    } catch (error) {
+      console.error('Combined API call failed:', error)
+      throw error
+    }
+  }
+
+  // Combined API call for handover and OB not required
+  static async updateHandoverAndObNotRequired(
+    handoverPayload: Parameters<typeof ApiService.updateHandoverDetails>[0],
+    obNotRequiredPayload: Parameters<typeof ApiService.updateTeamSubStageObNotRequired>[0]
+  ): Promise<[any, any]> {
+    try {
+      console.log('Starting combined API calls for OB not required...')
+      
+      // Run both APIs in parallel using Promise.all
+      const [handoverResponse, obNotRequiredResponse] = await Promise.all([
+        this.updateHandoverDetails(handoverPayload),
+        this.updateTeamSubStageObNotRequired(obNotRequiredPayload)
+      ])
+
+      console.log('Handover API response:', handoverResponse)
+      console.log('OB not required API response:', obNotRequiredResponse)
+
+      // Check if both APIs succeeded
+      if (handoverResponse.error === false && obNotRequiredResponse) {
+        console.log('Both APIs completed successfully')
+        return [handoverResponse, obNotRequiredResponse]
+      } else {
+        throw new Error('One or both APIs failed')
+      }
+    } catch (error) {
+      console.error('Combined API call failed:', error)
+      throw error
+    }
+  }
 }

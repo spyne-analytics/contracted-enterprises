@@ -119,7 +119,7 @@ const cityNames = [
 interface RooftopsTableProps {
   rooftopData?: RooftopData // Made optional since we'll fetch from API
   onRooftopSelect: (rooftopId: string) => void
-  onRooftopUpdate: (rooftopId: string, updates: Partial<RooftopData[string]>) => void
+  onRooftopUpdate: (rooftopId: string, updates: Partial<RooftopData[string]> & { shouldRemove?: boolean }) => void
   searchTerm?: string
   onSearchChange?: (term: string) => void
 }
@@ -131,6 +131,43 @@ export function RooftopsTable({
   searchTerm = "",
   onSearchChange 
 }: RooftopsTableProps) {
+  
+  // Parent-level toast to persist across row unmounts
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState("")
+  const showParentToast = (message: string) => {
+    setToastMessage(message)
+    setShowToast(true)
+    setTimeout(() => setShowToast(false), 3000)
+  }
+
+  // Handle rooftop updates including removal
+  const handleRooftopUpdate = (rooftopId: string, updates: Partial<RooftopData[string]> & { shouldRemove?: boolean }) => {
+    if (updates.shouldRemove) {
+      // Remove the rooftop from the local state
+      setApiData(prevData => prevData.filter(item => item.id !== rooftopId))
+      // Update total count
+      setTotalRecords(prev => Math.max(0, prev - 1))
+    } else {
+      // Regular update - optimistically update local state
+      setApiData(prevData => prevData.map(item => {
+        if (item.id !== rooftopId) return item
+        const updated = { ...item }
+        // Map known fields
+        if ((updates as any).subStage !== undefined) {
+          (updated as any).subStage = (updates as any).subStage as string
+        }
+        if ((updates as any).status !== undefined) {
+          // Map 'status' updates to 'stage' in local data
+          (updated as any).stage = (updates as any).status as string
+        }
+        return updated
+      }))
+
+      // Also pass to parent callback if needed
+      onRooftopUpdate(rooftopId, updates)
+    }
+  }
   const [searchValue, setSearchValue] = useState(searchTerm)
   const [debouncedSearchValue, setDebouncedSearchValue] = useState(searchTerm)
   const [selectedEnterprises, setSelectedEnterprises] = useState<Set<string>>(new Set())
@@ -910,9 +947,10 @@ export function RooftopsTable({
                     key={row.id} 
                     data={row} 
                     onRooftopSelect={onRooftopSelect} 
-                    onRooftopUpdate={onRooftopUpdate}
+                    onRooftopUpdate={handleRooftopUpdate}
                     isSelected={selectedEnterprises.has(row.id)}
                     onSelectEnterprise={handleSelectEnterprise}
+                    onShowToast={showParentToast}
                   />
                   ))}
                   {loadingMore && (
@@ -1418,6 +1456,23 @@ export function RooftopsTable({
                 Cancel Meet for {bulkCancellationData.selectedIds.length} Enterprise{bulkCancellationData.selectedIds.length !== 1 ? 's' : ''}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Parent Success Toast */}
+      {showToast && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-sm font-medium">{toastMessage}</span>
+            <button onClick={() => setShowToast(false)} className="ml-3 text-white/80 hover:text-white">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
       )}

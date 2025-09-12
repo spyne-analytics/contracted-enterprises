@@ -36,7 +36,7 @@ export function RooftopsTableFilters({
     account_type: ["All Type", "AUCTION_PLATFORM", "CAR_RENTAL_LEASING", "D2D", "FRANCHISE_DEALER", "INDEPENDENT_DEALER", "MARKETPLACE", "PARTNER", "OTHERS", "GROUP_DEALER", "INDIVIDUAL_DEALER"],
     account_sub_type: ["All Sub Type", "INDEPENDENT_DEALER", "FRANCHISE_DEALER"],
     ae_id: ["All AE", "ae_001", "ae_002", "ae_003", "ae_004"], // These would come from API
-    sub_stage: ["All Sub Stage", "OB To Be Scheduled", "In Implementation", "Under Review", "Client Unresponsive", "CSM Handover Pending", "OB Live", "Meet Pending", "Meet Scheduled", "Meet Done", "Meet Cancelled", "Drop off"]
+    sub_stage: ["All Sub Stage", "Meet Pending", "Meet Scheduled", "Meet Done", "Meet Cancelled", "Drop off"]
   }
 
   // Close filters panel when clicking outside
