@@ -44,7 +44,8 @@ export function RooftopsTableHeader({ sortField, sortDirection, onSort, isAllSel
         {/* Checkbox + Rooftop Name - Combined sticky column */}
         <th className="px-3 py-2 text-left h-10 w-[332px] sticky left-0 z-20 bg-white border-r border-gray-100" style={{ width: "332px !important", minWidth: "332px", maxWidth: "332px" }}>
           <div className="flex items-center gap-3">
-            <input
+            {/* Temporarily hidden - will be restored when APIs are ready */}
+            {/* <input
               type="checkbox"
               checked={isAllSelected}
               ref={(el) => {
@@ -52,7 +53,7 @@ export function RooftopsTableHeader({ sortField, sortDirection, onSort, isAllSel
               }}
               onChange={(e) => onSelectAll(e.target.checked)}
               className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-0 focus:outline-none flex-shrink-0"
-            />
+            /> */}
             <span className="text-sm font-medium text-gray-600">
               Rooftop Name
             </span>
