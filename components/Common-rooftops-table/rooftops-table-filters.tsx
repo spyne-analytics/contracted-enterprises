@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { ApiService } from "@/app/services/api"
 
 interface FilterValues {
   region_type: string
@@ -29,15 +30,50 @@ export function RooftopsTableFilters({
   const filtersRef = useRef<HTMLDivElement>(null)
   const filtersPanelRef = useRef<HTMLDivElement>(null)
   const moreFiltersButtonRef = useRef<HTMLButtonElement>(null)
+  
+  // State for AE POC options
+  const [aePocOptions, setAePocOptions] = useState<Array<{ name: string; userId: string }>>([{ name: "All POC", userId: "All POC" }])
+  const [aePocLoading, setAePocLoading] = useState(false)
 
   // Filter options - only for API-supported filters
   const filterOptions = {
     region_type: ["All Region", "AMER", "AMEA", "APAC", "EMEA", "OTHERS"],
     account_type: ["All Type", "AUCTION_PLATFORM", "CAR_RENTAL_LEASING", "D2D", "FRANCHISE_DEALER", "INDEPENDENT_DEALER", "MARKETPLACE", "PARTNER", "OTHERS", "GROUP_DEALER", "INDIVIDUAL_DEALER"],
     account_sub_type: ["All Sub Type", "INDEPENDENT_DEALER", "FRANCHISE_DEALER"],
-    ae_id: ["All AE", "ae_001", "ae_002", "ae_003", "ae_004"], // These would come from API
+    ae_id: aePocOptions, // Now dynamic from API with name and userId
     sub_stage: ["All Sub Stage", "Meet Pending", "Meet Scheduled", "Meet Done", "Meet Cancelled", "Drop off"]
   }
+
+  // Fetch AE POC options on component mount
+  useEffect(() => {
+    const fetchAePocOptions = async () => {
+      try {
+        setAePocLoading(true)
+        const response = await ApiService.getAePocNames()
+        
+        if (response && response.data && Array.isArray(response.data)) {
+          // Extract names and userIds from the response and add "All POC" as the first option
+          const pocOptions = response.data
+            .filter(poc => poc.name && poc.name.trim() !== '' && poc.userId)
+            .map(poc => ({ name: poc.name, userId: poc.userId }))
+          setAePocOptions([{ name: "All POC", userId: "All POC" }, ...pocOptions])
+        } else {
+          console.warn('Invalid response format for AE POC names:', response)
+          // Keep default options if API fails
+        }
+      } catch (error) {
+        console.error('Failed to fetch AE POC names:', error)
+        // Keep default options if API fails
+      } finally {
+        setAePocLoading(false)
+      }
+    }
+
+    // Only fetch if we don't already have options (beyond the default "All POC")
+    if (aePocOptions.length <= 1) {
+      fetchAePocOptions()
+    }
+  }, [aePocOptions.length])
 
   // Close filters panel when clicking outside
   useEffect(() => {
@@ -65,12 +101,18 @@ export function RooftopsTableFilters({
     setActiveDropdown(null)
   }
 
+  // Helper function to get display name for AE POC filter
+  const getAePocDisplayName = (userId: string) => {
+    const pocOption = aePocOptions.find(option => option.userId === userId)
+    return pocOption ? pocOption.name : userId
+  }
+
   const handleResetAll = () => {
     const resetFilters: FilterValues = {
       region_type: "All Region",
       account_type: "All Type",
       account_sub_type: "All Sub Type",
-      ae_id: "All AE",
+      ae_id: "All POC",
       sub_stage: "All Sub Stage",
       contractedOnly: false
     }
@@ -259,26 +301,31 @@ export function RooftopsTableFilters({
 
             {/* AE ID Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">AE ID</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">AE POC</label>
               <div className="relative">
                 <button
                   onClick={() => setActiveDropdown(activeDropdown === 'ae_id' ? null : 'ae_id')}
-                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50"
+                  disabled={aePocLoading}
+                  className={`w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 ${aePocLoading ? 'cursor-not-allowed opacity-50' : ''}`}
                 >
-                  <span>{filterValues.ae_id}</span>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'ae_id' ? 'rotate-180' : ''}`}>
-                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <span>{aePocLoading ? 'Loading POCs...' : getAePocDisplayName(filterValues.ae_id)}</span>
+                  {aePocLoading ? (
+                    <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-gray-600 rounded-full"></div>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'ae_id' ? 'rotate-180' : ''}`}>
+                      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
                 </button>
-                {activeDropdown === 'ae_id' && (
+                {activeDropdown === 'ae_id' && !aePocLoading && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
                     {filterOptions.ae_id.map((option) => (
                       <button
-                        key={option}
-                        onClick={() => handleFilterChange('ae_id', option)}
+                        key={option.userId}
+                        onClick={() => handleFilterChange('ae_id', option.userId)}
                         className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
                       >
-                        {option}
+                        {option.name}
                       </button>
                     ))}
                   </div>

@@ -296,6 +296,38 @@ export class ApiService {
     return data
   }
 
+  // Get AE POC names API
+  static async getAePocNames(): Promise<{ message: string; error: boolean; code: string; details: any; data: Array<{ name: string; email: string; userId: string }> }> {
+    // Use the provided endpoint for AE POC details
+    const url = 'https://uat-api.spyne.xyz/console/v3/contracting/get-enterprise-poc-details?type_of_poc=ae&batchSize=100&offset=1'
+    
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${BEARER_TOKEN}`,
+      'Cookie': 'sails.sid=s%3ARUPPIQWtH0U4n0ir6bE2Cw2zF9iThl6p.rQHQyWTMYHbQRGDmKF5GbJLLHx3vxs6FUqmpfGpoxRw; sails.sid=s%3A82gbG46nbIAMFz8nOKbartgYNnV-mCF1.Hsx68ZhziPctFZsHUUaVnVOQRZDZd%2B8wOiDggDLzcyg'
+    }
+
+    console.log('Making API request to:', url)
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      headers: defaultHeaders,
+    })
+
+    console.log('API response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('API error response:', errorText)
+      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('API response data:', data)
+    return data
+  }
+
   // Update team sub-stage API for simple sub-stage changes (Drop off)
   static async updateTeamSubStageSimple(payload: {
     enterprise_id: string

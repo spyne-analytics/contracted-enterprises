@@ -211,7 +211,7 @@ export function RooftopsTable({
     if (filterValues.account_sub_type !== "All Sub Type") {
       filters.account_sub_type = filterValues.account_sub_type
     }
-    if (filterValues.ae_id !== "All AE") {
+    if (filterValues.ae_id !== "All POC") {
       filters.ae_id = filterValues.ae_id
     }
     if (filterValues.sub_stage !== "All Sub Stage") {
@@ -382,7 +382,7 @@ export function RooftopsTable({
     region_type: "All Region",
     account_type: "All Type",
     account_sub_type: "All Sub Type",
-    ae_id: "All AE",
+    ae_id: "All POC",
     sub_stage: "All Sub Stage",
     contractedOnly: false
   })
