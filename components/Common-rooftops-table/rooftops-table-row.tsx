@@ -754,15 +754,20 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         // Meet Done case - remove from table and show toast
         onRooftopUpdate(rooftopId, { shouldRemove: true })
         
-        // Show toast that rooftop moved to onboarding
-        setSuccessToastMessage("Rooftop moved to onboarding")
-        setToastType('success')
-        setShowSuccessToast(true)
-        setTimeout(() => setShowSuccessToast(false), 3000)
-        
-      setPendingSubStage(null)
-      setShowDoneConfirm(false)
+        // Close modal first
+        setPendingSubStage(null)
+        setShowDoneConfirm(false)
         setSelectedOnboardingManager("") // Reset to default
+        
+        // Show toast that rooftop moved to onboarding using parent toast
+        if (onShowToast) {
+          onShowToast("Rooftop moved to onboarding")
+        } else {
+          setSuccessToastMessage("Rooftop moved to onboarding")
+          setToastType('success')
+          setShowSuccessToast(true)
+          setTimeout(() => setShowSuccessToast(false), 3000)
+        }
         
       } catch (error) {
         console.error('Failed to mark meet as done:', error)
@@ -850,15 +855,20 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         // Update sub stage to Meet Cancelled
         onRooftopUpdate(rooftopId, { subStage: 'Meet Cancelled' })
         
-        // Show success toast
-        setSuccessToastMessage("Meeting cancelled successfully")
-        setToastType('success')
-        setShowSuccessToast(true)
-        setTimeout(() => setShowSuccessToast(false), 3000)
-        
+        // Close modal first
         setPendingSubStage(null)
         setShowCancellationModal(false)
         setCancellationReason("")
+        
+        // Show success toast using parent toast
+        if (onShowToast) {
+          onShowToast("Meeting cancelled successfully")
+        } else {
+          setSuccessToastMessage("Meeting cancelled successfully")
+          setToastType('success')
+          setShowSuccessToast(true)
+          setTimeout(() => setShowSuccessToast(false), 3000)
+        }
         
       } catch (error) {
         console.error('Failed to cancel meet:', error)

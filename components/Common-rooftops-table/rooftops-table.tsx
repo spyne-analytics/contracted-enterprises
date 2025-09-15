@@ -771,6 +771,10 @@ export function RooftopsTable({
         onRooftopUpdate(enterpriseId, { subStage: 'Meet Cancelled' })
       })
       
+      // Show success toast
+      const count = bulkCancellationData.selectedIds.length
+      showParentToast(`${count} meeting(s) cancelled successfully`)
+      
       // Clear selection and close modal
       setSelectedEnterprises(new Set())
       setBulkCancellationData(null)
