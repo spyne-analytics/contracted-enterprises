@@ -326,7 +326,7 @@ export function RooftopsTableFilters({
                   )}
                 </button>
                 {activeDropdown === 'ae_id' && !aePocLoading && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-64 overflow-y-auto">
                     {filterOptions.ae_id.map((option) => (
                       <button
                         key={option.userId}
