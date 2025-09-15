@@ -32,7 +32,7 @@ export function RooftopsTableFilters({
   const moreFiltersButtonRef = useRef<HTMLButtonElement>(null)
   
   // State for AE POC options
-  const [aePocOptions, setAePocOptions] = useState<Array<{ name: string; userId: string }>>([{ name: "All POC", userId: "All POC" }])
+  const [aePocOptions, setAePocOptions] = useState<Array<{ name: string; email?: string; userId: string }>>([{ name: "All POC", userId: "All POC" }])
   const [aePocLoading, setAePocLoading] = useState(false)
 
   // Filter options - only for API-supported filters
@@ -52,10 +52,10 @@ export function RooftopsTableFilters({
         const response = await ApiService.getAePocNames()
         
         if (response && response.data && Array.isArray(response.data)) {
-          // Extract names and userIds from the response and add "All POC" as the first option
+          // Extract names, emails and userIds from the response and add "All POC" as the first option
           const pocOptions = response.data
             .filter(poc => poc.name && poc.name.trim() !== '' && poc.userId)
-            .map(poc => ({ name: poc.name, userId: poc.userId }))
+            .map(poc => ({ name: poc.name, email: poc.email, userId: poc.userId }))
           setAePocOptions([{ name: "All POC", userId: "All POC" }, ...pocOptions])
         } else {
           console.warn('Invalid response format for AE POC names:', response)
@@ -104,7 +104,15 @@ export function RooftopsTableFilters({
   // Helper function to get display name for AE POC filter
   const getAePocDisplayName = (userId: string) => {
     const pocOption = aePocOptions.find(option => option.userId === userId)
-    return pocOption ? pocOption.name : userId
+    if (!pocOption) return userId
+    
+    // If it's "All POC" or no email, just show the name
+    if (pocOption.userId === "All POC" || !pocOption.email) {
+      return pocOption.name
+    }
+    
+    // Show name with email in format "Name (email@domain.com)"
+    return `${pocOption.name} (${pocOption.email})`
   }
 
   const handleResetAll = () => {
@@ -325,7 +333,7 @@ export function RooftopsTableFilters({
                         onClick={() => handleFilterChange('ae_id', option.userId)}
                         className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
                       >
-                        {option.name}
+                        {option.userId === "All POC" || !option.email ? option.name : `${option.name} (${option.email})`}
                       </button>
                     ))}
                   </div>

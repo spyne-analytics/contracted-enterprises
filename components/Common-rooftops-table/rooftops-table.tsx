@@ -97,7 +97,7 @@ const gdToEnterprises = {
 
 const planOptions = ["Essential", "Growth", "Enterprise", "Comprehensive"]
 const languageOptions = ["English", "Spanish", "French", "German", "Portuguese", "Italian", "Dutch", "Chinese", "Japanese", "Korean"]
-const mediaOptions = ["Images", "360 Spin", "Video Tour"]
+const mediaOptions = ["Images", "360 Spin", "Video Tour", "Inventory"]
 
 // Location names for generating unique rooftop names
 const locationSuffixes = [

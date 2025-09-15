@@ -27,7 +27,7 @@ export default function ContractedRooftopsPage() {
       <div className="px-8 py-6">
         <div className="mb-4">
           <h2 className="text-xl font-semibold text-gray-900">
-            Contracted Enterprises
+            Contracted Rooftops
           </h2>
         </div>
 
