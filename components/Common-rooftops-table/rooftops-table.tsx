@@ -1011,7 +1011,7 @@ export function RooftopsTable({
                 <p className="text-sm text-gray-600 mt-1">
                   {showBulkScheduleForm 
                     ? `Schedule Onboarding call with client - Bulk action for ${bulkHandoverData.selectedIds.length} rooftops`
-                    : `Enter enterprise details for OB team - Bulk action for ${bulkHandoverData.selectedIds.length} rooftops`
+                    : `Enter rooftop details for OB team - Bulk action for ${bulkHandoverData.selectedIds.length} rooftops`
                   }
                 </p>
               </div>
@@ -1453,7 +1453,7 @@ export function RooftopsTable({
                     : 'text-gray-400 bg-gray-300 cursor-not-allowed'
                 }`}
               >
-                Cancel Meet for {bulkCancellationData.selectedIds.length} Enterprise{bulkCancellationData.selectedIds.length !== 1 ? 's' : ''}
+                Cancel Meet for {bulkCancellationData.selectedIds.length} Rooftop{bulkCancellationData.selectedIds.length !== 1 ? 's' : ''}
               </button>
             </div>
           </div>

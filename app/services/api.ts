@@ -1,9 +1,9 @@
 import { ApiResponse, ApiRequestPayload, ApiTeamData, RooftopsData } from '../types'
 
 // Client-side API service for making requests to external API
-// Uses NEXT_PUBLIC_ environment variables to ensure client-side availability
+// Uses hardcoded Bearer token for authentication
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://uat-api.spyne.xyz/console/v1'
-const BEARER_TOKEN = process.env.NEXT_PUBLIC_API_BEARER_TOKEN
+const BEARER_TOKEN = 'eyJhdXRoS2V5IjoiMDQzOGQ2MjAtMDhmOC00MmEyLTk3ZmQtNjdkMzFhODdiZTAyIiwiZGV2aWNlSWQiOiI1ZWE0NDEzZDRjNGU5MzM4NmRjZWIwODIxN2ZiYzJlYiIsImVudGVycHJpc2VfaWQiOiI1MjhhZWY5YzUiLCJ0ZWFtX2lkIjoiYzk2MjRhOTctNCJ9'
 
 /**
  * Client-side API service for fetching contracted teams data

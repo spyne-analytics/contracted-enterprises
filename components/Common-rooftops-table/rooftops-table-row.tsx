@@ -989,7 +989,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                     {showScheduleForm ? 'SH Call Schedule' : 'Handover Details'}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {showScheduleForm ? 'Schedule Onboarding call with client' : 'Enter enterprise details for OB team.'}
+                    {showScheduleForm ? 'Schedule Onboarding call with client' : 'Enter rooftop details for OB team.'}
                   </p>
                 </div>
                 <button
@@ -1377,7 +1377,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                 <h3 className="text-lg font-semibold text-gray-900">Mark Meet as Done?</h3>
               </div>
               <div className="px-6 py-4 space-y-4">
-                <p className="text-sm text-gray-700">This will move the enterprise Stage to Onboarding. Are you sure?</p>
+                <p className="text-sm text-gray-700">This will move the rooftop Stage to Onboarding. Are you sure?</p>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1440,7 +1440,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                 <h3 className="text-lg font-semibold text-gray-900">Mark as Drop off?</h3>
               </div>
               <div className="px-6 py-4">
-                <p className="text-sm text-gray-700">This will move the enterprise Stage to Drop off. Are you sure?</p>
+                <p className="text-sm text-gray-700">This will move the rooftop Stage to Drop off. Are you sure?</p>
               </div>
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
