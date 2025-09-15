@@ -135,10 +135,12 @@ export function RooftopsTable({
   // Parent-level toast to persist across row unmounts
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
-  const showParentToast = (message: string) => {
+  const [toastType, setToastType] = useState<'success' | 'error'>('success')
+  const showParentToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToastMessage(message)
+    setToastType(type)
     setShowToast(true)
-    setTimeout(() => setShowToast(false), 3000)
+    setTimeout(() => setShowToast(false), type === 'error' ? 5000 : 3000)
   }
 
   // Handle rooftop updates including removal
@@ -246,7 +248,9 @@ export function RooftopsTable({
   const [bulkClientLanguages, setBulkClientLanguages] = useState<string[]>(["English"])
   const [bulkImportantNotes, setBulkImportantNotes] = useState("NA")
   const [bulkRescheduleReason, setBulkRescheduleReason] = useState("")
+  const [bulkRescheduleReasonError, setBulkRescheduleReasonError] = useState("")
   const [bulkObCallNotRequired, setBulkObCallNotRequired] = useState(false)
+  const [bulkIsLoading, setBulkIsLoading] = useState(false)
   const [bulkSelectedDate, setBulkSelectedDate] = useState("")
   const [bulkSelectedTimezone, setBulkSelectedTimezone] = useState("Asia/Kolkata (IST)")
   const [bulkStartTime, setBulkStartTime] = useState("8:00 PM")
@@ -686,7 +690,7 @@ export function RooftopsTable({
     } else if (currentSubStage === "Meet Done") {
       return ["Meet Done"] // Final state
     } else if (currentSubStage === "Meet Cancelled") {
-      return ["Meet Cancelled"] // Final state
+      options = ["Meet Cancelled", "Meet Reschedule"]
     } else {
       options = [currentSubStage]
     }
@@ -807,21 +811,48 @@ export function RooftopsTable({
     setShowBulkScheduleForm(false)
   }
 
-  const handleBulkScheduleConfirm = () => {
+  const handleBulkScheduleConfirm = async () => {
     if (!bulkHandoverData) return
     
-    // Apply the sub-stage change to all selected rooftops
-    bulkHandoverData.selectedIds.forEach(enterpriseId => {
-      // Special logic for Meet Reschedule - after reschedule process is complete, revert to Meet Scheduled
-      const finalSubStage = bulkHandoverData.subStage === "Meet Reschedule" ? "Meet Scheduled" : bulkHandoverData.subStage
-      onRooftopUpdate(enterpriseId, { subStage: finalSubStage })
-    })
+    // Clear previous errors
+    setBulkRescheduleReasonError("")
     
-    // Clear selection and hide modal
-    setSelectedEnterprises(new Set())
-    setShowBulkHandoverModal(false)
-    setShowBulkScheduleForm(false)
-    setBulkHandoverData(null)
+    // Validate reschedule reason if Meet Reschedule is selected
+    if (bulkHandoverData.subStage === "Meet Reschedule" && !bulkRescheduleReason.trim()) {
+      setBulkRescheduleReasonError("Reschedule reason is required")
+      return
+    }
+    
+    try {
+      setBulkIsLoading(true)
+      
+      // Simulate processing time for better UX
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Apply the sub-stage change to all selected rooftops
+      bulkHandoverData.selectedIds.forEach(enterpriseId => {
+        // Special logic for Meet Reschedule - after reschedule process is complete, revert to Meet Scheduled
+        const finalSubStage = bulkHandoverData.subStage === "Meet Reschedule" ? "Meet Scheduled" : bulkHandoverData.subStage
+        onRooftopUpdate(enterpriseId, { subStage: finalSubStage })
+      })
+      
+      // Show success message
+      const actionText = bulkHandoverData.subStage === "Meet Reschedule" ? "rescheduled" : "scheduled"
+      const successMessage = `${bulkHandoverData.selectedIds.length} meeting(s) ${actionText} successfully`
+      showParentToast(successMessage)
+      
+      // Clear selection and hide modal
+      setSelectedEnterprises(new Set())
+      setShowBulkHandoverModal(false)
+      setShowBulkScheduleForm(false)
+      setBulkHandoverData(null)
+      
+    } catch (error) {
+      console.error('Bulk schedule operation failed:', error)
+      showParentToast("Failed to process bulk schedule operation. Please try again.", 'error')
+    } finally {
+      setBulkIsLoading(false)
+    }
   }
 
   return (
@@ -1061,10 +1092,23 @@ export function RooftopsTable({
                       <textarea
                         rows={4}
                         value={bulkRescheduleReason}
-                        onChange={(e) => setBulkRescheduleReason(e.target.value)}
+                        onChange={(e) => {
+                          setBulkRescheduleReason(e.target.value)
+                          // Clear error when user starts typing
+                          if (bulkRescheduleReasonError) {
+                            setBulkRescheduleReasonError("")
+                          }
+                        }}
                         placeholder="Reschedule Reason *"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                          bulkRescheduleReasonError 
+                            ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                            : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500'
+                        }`}
                       />
+                      {bulkRescheduleReasonError && (
+                        <p className="mt-1 text-sm text-red-600">{bulkRescheduleReasonError}</p>
+                      )}
                     </div>
                   )}
 
@@ -1371,10 +1415,23 @@ export function RooftopsTable({
                       <textarea
                         rows={4}
                         value={bulkRescheduleReason}
-                        onChange={(e) => setBulkRescheduleReason(e.target.value)}
+                        onChange={(e) => {
+                          setBulkRescheduleReason(e.target.value)
+                          // Clear error when user starts typing
+                          if (bulkRescheduleReasonError) {
+                            setBulkRescheduleReasonError("")
+                          }
+                        }}
                         placeholder="Reschedule Reason *"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                          bulkRescheduleReasonError 
+                            ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                            : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500'
+                        }`}
                       />
+                      {bulkRescheduleReasonError && (
+                        <p className="mt-1 text-sm text-red-600">{bulkRescheduleReasonError}</p>
+                      )}
                     </div>
                   )}
 
@@ -1400,9 +1457,23 @@ export function RooftopsTable({
               </button>
               <button
                 onClick={showBulkScheduleForm ? handleBulkScheduleConfirm : handleBulkHandoverConfirm}
-                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-primary-600 border border-transparent rounded-md hover:from-purple-700 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                disabled={bulkIsLoading}
+                className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 flex items-center gap-2 ${
+                  bulkIsLoading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'text-white bg-gradient-to-r from-purple-600 to-primary-600 hover:from-purple-700 hover:to-primary-700'
+                }`}
               >
-                {showBulkScheduleForm ? (bulkObCallNotRequired ? 'Continue' : 'Schedule') : 'Continue'}
+                {bulkIsLoading && (
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {bulkIsLoading 
+                  ? 'Scheduling...' 
+                  : (showBulkScheduleForm ? (bulkObCallNotRequired ? 'Continue' : 'Schedule') : 'Continue')
+                }
               </button>
             </div>
           </div>
@@ -1460,13 +1531,19 @@ export function RooftopsTable({
         </div>
       )}
 
-      {/* Parent Success Toast */}
+      {/* Parent Toast */}
       {showToast && (
         <div className="fixed top-4 right-4 z-50">
-          <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+          <div className={`${toastType === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3`}>
+            {toastType === 'error' ? (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
             <span className="text-sm font-medium">{toastMessage}</span>
             <button onClick={() => setShowToast(false)} className="ml-3 text-white/80 hover:text-white">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -227,6 +227,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     const [pendingSubStage, setPendingSubStage] = useState<string | null>(null)
     const [showSuccessToast, setShowSuccessToast] = useState(false)
     const [successToastMessage, setSuccessToastMessage] = useState("Details updated successfully")
+    const [toastType, setToastType] = useState<'success' | 'error'>('success')
     const [showScheduleForm, setShowScheduleForm] = useState(false)
     const [cancellationReason, setCancellationReason] = useState("")
     const [isApiLoading, setIsApiLoading] = useState(false)
@@ -249,6 +250,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     const [endTime, setEndTime] = useState("08:30 PM")
     const [duration, setDuration] = useState("30 mins")
     const [rescheduleReason, setRescheduleReason] = useState("")
+    const [rescheduleReasonError, setRescheduleReasonError] = useState("")
     const [obCallNotRequired, setObCallNotRequired] = useState(false)
     const [inviteEmails, setInviteEmails] = useState("")
     const [participants, setParticipants] = useState([
@@ -422,7 +424,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       } else if (subStage === "Meet Done") {
         return ["Meet Done"] // Final state
       } else if (subStage === "Meet Cancelled") {
-        return ["Meet Cancelled"] // Final state
+        options = ["Meet Cancelled", "Meet Reschedule"]
       } else {
         options = [subStage]
       }
@@ -432,7 +434,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
 
     const handleSubStageChange = (newSubStage: string) => {
       // Check if changing to "Meet Scheduled" or "Meet Reschedule" - show modal
-      if ((subStage === "Meet Pending" && newSubStage === "Meet Scheduled") ||
+      if (((subStage === "Meet Pending" || subStage === "Meet Cancelled") && newSubStage === "Meet Scheduled") ||
           (newSubStage === "Meet Reschedule")) {
         setPendingSubStage(newSubStage)
         setShowHandoverModal(true)
@@ -476,6 +478,15 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     }
     
     const handleScheduleConfirm = async () => {
+      // Clear previous errors
+      setRescheduleReasonError("")
+      
+      // Validate reschedule reason if Meet Reschedule is selected
+      if (pendingSubStage === "Meet Reschedule" && !rescheduleReason.trim()) {
+        setRescheduleReasonError("Reschedule reason is required")
+        return
+      }
+      
       // Prepare handover details payload
       const handoverPayload = {
         enterprise_id: data.enterpriseId,
@@ -495,7 +506,8 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       }
 
       try {
-        setIsApiLoading(true) // Start loading
+        console.log('Setting loading state to true - Schedule button should show loader now')
+        setIsApiLoading(true) // Start loading - will persist until update-team-sub-stage API completes
         
         if (obCallNotRequired) {
           // OB call not required flow - go directly to Meet Done
@@ -523,11 +535,11 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
 
           console.log('Starting combined API calls for handover and OB not required...')
           
-          // Call both APIs using Promise.all
-          const [handoverResponse, obNotRequiredResponse] = await ApiService.updateHandoverAndObNotRequired(
-            handoverPayload,
-            obNotRequiredPayload
-          )
+          // Call both APIs using Promise.all with minimum loading time
+          const [handoverResponse, obNotRequiredResponse] = await Promise.all([
+            ApiService.updateHandoverAndObNotRequired(handoverPayload, obNotRequiredPayload),
+            new Promise(resolve => setTimeout(resolve, 1000)) // Minimum 1 second loading time
+          ]).then(([apiResult, _]) => apiResult)
           
           console.log('Both APIs completed successfully')
           
@@ -536,10 +548,22 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             // Remove the entry from table by updating parent
             onRooftopUpdate(rooftopId, { shouldRemove: true })
             
-            // Show toast that rooftop moved to onboarding
-            setSuccessToastMessage("Rooftop moved to onboarding")
-            setShowSuccessToast(true)
-            setTimeout(() => setShowSuccessToast(false), 3000)
+            // Close modal first
+            setShowHandoverModal(false)
+            setShowScheduleForm(false)
+            
+            // Show toast that rooftop moved to onboarding using parent toast
+            if (onShowToast) {
+              onShowToast("Rooftop moved to onboarding")
+            } else {
+              setSuccessToastMessage("Rooftop moved to onboarding")
+              setToastType('success')
+              setShowSuccessToast(true)
+              setTimeout(() => setShowSuccessToast(false), 3000)
+            }
+            
+            // Exit early since we've handled everything
+            return
           }
           
         } else {
@@ -600,55 +624,87 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             notes: rescheduleReason || ""
           }
 
-          // Optimistically update UI to the target sub_stage immediately
-          onRooftopUpdate(rooftopId, { subStage: (pendingSubStage === "Meet Reschedule") ? "Meet Scheduled" : (pendingSubStage || "Meet Scheduled") })
-
           console.log('Starting combined API calls for handover and scheduling...')
+          console.log('Loading state should be visible on Schedule button now')
           
-          // Call both APIs using Promise.all
-          const [handoverResponse, scheduleResponse] = await ApiService.updateHandoverAndSchedule(
-            handoverPayload,
-            schedulePayload
-          )
+          // Call both APIs using Promise.all with minimum loading time for better UX
+          const [handoverResponse, scheduleResponse] = await Promise.all([
+            ApiService.updateHandoverAndSchedule(handoverPayload, schedulePayload),
+            new Promise(resolve => setTimeout(resolve, 1000)) // Minimum 1 second loading time
+          ]).then(([apiResult, _]) => apiResult)
           
-          console.log('Both APIs completed successfully')
+          console.log('Both APIs completed successfully - update-team-sub-stage API has returned')
+          console.log('Loading state will be cleared in finally block')
           
           // Handle different sub_stage cases based on API response
           const responseSubStage = schedulePayload.sub_stage
           
+          let successMessage = "Details updated successfully"
+          
           if (responseSubStage === "Meet Scheduled") {
             // Case 1: Meet was scheduled - update local UI state
             onRooftopUpdate(rooftopId, { subStage: "Meet Scheduled" })
-        setPendingSubStage(null)
-            setSuccessToastMessage("Meeting scheduled successfully")
+            setPendingSubStage(null)
+            successMessage = "Meeting scheduled successfully"
           } else if (responseSubStage === "Meet Rescheduled") {
             // Case 2: Meet was rescheduled - UI should show 'Meet Scheduled' again
             onRooftopUpdate(rooftopId, { subStage: "Meet Scheduled" })
             setPendingSubStage(null)
-            setSuccessToastMessage("Meeting rescheduled successfully")
+            successMessage = "Meeting rescheduled successfully"
           } else if (responseSubStage === "Meet Done") {
             // Case 3: Meet Done - remove from table and show toast
             onRooftopUpdate(rooftopId, { shouldRemove: true })
-            setSuccessToastMessage("Rooftop moved to onboarding")
+            successMessage = "Rooftop moved to onboarding"
           } else if (pendingSubStage) {
             // Fallback: map UI sub_stage to final display; reschedule should appear as scheduled
             onRooftopUpdate(rooftopId, { subStage: (pendingSubStage === "Meet Reschedule") ? "Meet Scheduled" : pendingSubStage })
             setPendingSubStage(null)
-            setSuccessToastMessage("Details updated successfully")
+            successMessage = "Details updated successfully"
+          }
+          
+          // Close modal first
+          setShowHandoverModal(false)
+          setShowScheduleForm(false)
+          
+          // Show success toast using parent toast to persist after modal closes
+          if (onShowToast) {
+            onShowToast(successMessage)
+          } else {
+            // Fallback to local toast
+            setSuccessToastMessage(successMessage)
+            setToastType('success')
+            setShowSuccessToast(true)
+            setTimeout(() => setShowSuccessToast(false), 3000)
           }
         }
         
-      setShowHandoverModal(false)
-      setShowScheduleForm(false)
-        
-        // Show success message
-        setShowSuccessToast(true)
-        setTimeout(() => setShowSuccessToast(false), 3000)
-        
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to update handover and schedule:', error)
-        alert('Failed to update handover details and schedule. Please try again.')
+        
+        // Extract error code/message for toast
+        let errorMessage = "Failed to schedule meeting. Please try again."
+        let errorCode = ""
+        
+        if (error?.response?.data?.error) {
+          errorCode = error.response.data.error
+          errorMessage = `Failed to schedule meeting. Error: ${errorCode}`
+        } else if (error?.message) {
+          errorMessage = `Failed to schedule meeting. ${error.message}`
+        }
+        
+        // Show error toast using parent toast if available, otherwise use local toast
+        if (onShowToast) {
+          onShowToast(errorMessage)
+        } else {
+          setSuccessToastMessage(errorMessage)
+          setToastType('error')
+          setShowSuccessToast(true)
+          setTimeout(() => setShowSuccessToast(false), 5000) // Show error longer
+        }
+        
+        // Don't close modal on error - let user try again
       } finally {
+        console.log('Setting loading state to false - Schedule button should stop showing loader now')
         setIsApiLoading(false) // Stop loading
       }
     }
@@ -700,6 +756,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         
         // Show toast that rooftop moved to onboarding
         setSuccessToastMessage("Rooftop moved to onboarding")
+        setToastType('success')
         setShowSuccessToast(true)
         setTimeout(() => setShowSuccessToast(false), 3000)
         
@@ -746,6 +803,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           onShowToast("Rooftop marked as Drop-Off")
         } else {
           setSuccessToastMessage("Rooftop marked as Drop-Off")
+          setToastType('success')
           setShowSuccessToast(true)
           setTimeout(() => setShowSuccessToast(false), 3000)
         }
@@ -794,6 +852,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         
         // Show success toast
         setSuccessToastMessage("Meeting cancelled successfully")
+        setToastType('success')
         setShowSuccessToast(true)
         setTimeout(() => setShowSuccessToast(false), 3000)
         
@@ -1307,10 +1366,23 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                       <textarea
                         rows={4}
                         value={rescheduleReason}
-                        onChange={(e) => setRescheduleReason(e.target.value)}
+                        onChange={(e) => {
+                          setRescheduleReason(e.target.value)
+                          // Clear error when user starts typing
+                          if (rescheduleReasonError) {
+                            setRescheduleReasonError("")
+                          }
+                        }}
                         placeholder="Reschedule Reason *"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                          rescheduleReasonError 
+                            ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                            : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500'
+                        }`}
                       />
+                      {rescheduleReasonError && (
+                        <p className="mt-1 text-sm text-red-600">{rescheduleReasonError}</p>
+                      )}
                     </div>
                     )}
 
@@ -1360,7 +1432,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                   </svg>
                 )}
                 {isApiLoading 
-                  ? 'Processing...' 
+                  ? 'Scheduling...' 
                   : (showScheduleForm ? (obCallNotRequired ? 'Continue' : 'Schedule') : 'Continue')
                 }
                 </button>
@@ -1535,10 +1607,11 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           </div>
         )}
         
-        {/* Success Toast */}
-        <SuccessToast 
+        {/* Toast */}
+        <Toast 
           show={showSuccessToast} 
           message={successToastMessage}
+          type={toastType}
           onClose={() => setShowSuccessToast(false)} 
         />
       </div>
@@ -1814,20 +1887,35 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
   )
 }
 
-// Success Toast Component
-const SuccessToast = ({ show, message, onClose }: { show: boolean; message: string; onClose: () => void }) => {
+// Toast Component that handles both success and error states
+const Toast = ({ show, message, type = 'success', onClose }: { 
+  show: boolean; 
+  message: string; 
+  type?: 'success' | 'error'; 
+  onClose: () => void 
+}) => {
   if (!show) return null
+  
+  const isError = type === 'error'
+  const bgColor = isError ? 'bg-red-500' : 'bg-green-500'
+  const hoverColor = isError ? 'hover:text-red-200' : 'hover:text-green-200'
   
   return (
     <div className="fixed top-4 right-4 z-50">
-      <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-        </svg>
+      <div className={`${bgColor} text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3`}>
+        {isError ? (
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+        ) : (
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+        )}
         <span>{message}</span>
         <button
           onClick={onClose}
-          className="text-white hover:text-green-200 ml-2"
+          className={`text-white ${hoverColor} ml-2`}
         >
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
