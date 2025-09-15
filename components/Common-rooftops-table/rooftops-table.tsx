@@ -390,8 +390,6 @@ export function RooftopsTable({
     sub_stage: "All Sub Stage",
     contractedOnly: false
   })
-  const [sortField, setSortField] = useState<string | null>(null)
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   // Fetch initial data from API
   useEffect(() => {
@@ -441,14 +439,6 @@ export function RooftopsTable({
     }
   }, [filterValues, debouncedSearchValue]) // Re-load when filters or debounced search change
 
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortDirection('asc')
-    }
-  }
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
@@ -603,24 +593,9 @@ export function RooftopsTable({
       return matchesContractedOnly
     })
 
-    // Apply sorting
-    if (sortField) {
-      filtered.sort((a, b) => {
-        let aValue: any = a[sortField as keyof RooftopsData]
-        let bValue: any = b[sortField as keyof RooftopsData]
-
-        // Convert to string for comparison
-        aValue = String(aValue).toLowerCase()
-        bValue = String(bValue).toLowerCase()
-
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
-        return 0
-      })
-    }
 
     return filtered
-  }, [convertedData, filterValues.contractedOnly, sortField, sortDirection])
+  }, [convertedData, filterValues.contractedOnly])
 
   // Selection handlers and state (after filteredData is defined)
   const handleSelectAll = (checked: boolean) => {
@@ -702,6 +677,13 @@ export function RooftopsTable({
 
   const handleBulkSubStageChange = (newSubStage: string) => {
     if (!newSubStage || selectedEnterprises.size === 0 || !canUseBulkActions) return
+    
+    // Check if the new sub-stage is the same as the current one
+    const currentSubStage = selectedData[0]?.subStage
+    if (newSubStage === currentSubStage) {
+      // Don't trigger action if trying to change to the same sub-stage
+      return
+    }
     
     // For all sub-stage changes, show the bulk confirmation modal first
     setBulkActionConfirm({
@@ -940,9 +922,6 @@ export function RooftopsTable({
           <table className="w-full border-collapse" style={{ minWidth: "1400px" }}>
             
             <RooftopsTableHeader 
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSort={handleSort}
               isAllSelected={isAllSelected}
               isIndeterminate={isIndeterminate}
               onSelectAll={handleSelectAll}

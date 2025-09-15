@@ -1045,7 +1045,11 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                   key={option}
                   onClick={(e) => {
                     e.stopPropagation()
-                    handleSubStageChange(option)
+                    // Don't trigger change if clicking on already selected option
+                    if (option !== subStage) {
+                      handleSubStageChange(option)
+                    }
+                    setIsOpen(false) // Close dropdown in all cases
                   }}
                   className={`w-full text-left px-3 py-2 text-sm hover:bg-[#f9fafb] transition-colors ${
                     option === subStage ? "bg-[#f0ebff] text-[#4600f2]" : "text-[#333333]"
