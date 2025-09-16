@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import type { RooftopsData } from "./rooftops-table"
 import { ApiService } from "@/app/services/api"
 
@@ -244,15 +244,15 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     const [isApiLoading, setIsApiLoading] = useState(false)
     
     // Form state
-    const [inputPlatforms, setInputPlatforms] = useState<string[]>(["FTP"])
-    const [inputDMS, setInputDMS] = useState("HMN")
-    const [inputWebsiteProvider, setInputWebsiteProvider] = useState("NA")
-    const [outputPlatforms, setOutputPlatforms] = useState<string[]>(["FTP"])
-    const [outputDMS, setOutputDMS] = useState("VAuto")
-    const [outputWebsiteProvider, setOutputWebsiteProvider] = useState("NA")
+    const [inputPlatforms, setInputPlatforms] = useState<string[]>([])
+    const [inputDMS, setInputDMS] = useState("")
+    const [inputWebsiteProvider, setInputWebsiteProvider] = useState("")
+    const [outputPlatforms, setOutputPlatforms] = useState<string[]>([])
+    const [outputDMS, setOutputDMS] = useState("")
+    const [outputWebsiteProvider, setOutputWebsiteProvider] = useState("")
     const [sameAsInput, setSameAsInput] = useState(false)
-    const [clientLanguages, setClientLanguages] = useState<string[]>(["English"])
-    const [importantNotes, setImportantNotes] = useState("NA")
+    const [clientLanguages, setClientLanguages] = useState<string[]>([])
+    const [importantNotes, setImportantNotes] = useState("")
     
     // Schedule form state
     const [selectedDate, setSelectedDate] = useState("")
@@ -480,7 +480,36 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
       }
     }
 
+    // Validation function for handover form
+    const isHandoverFormValid = () => {
+      return (
+        inputPlatforms.length > 0 &&
+        inputDMS.trim() !== "" &&
+        inputWebsiteProvider.trim() !== "" &&
+        outputPlatforms.length > 0 &&
+        outputDMS.trim() !== "" &&
+        outputWebsiteProvider.trim() !== "" &&
+        clientLanguages.length > 0
+        // Note: importantNotes is not required
+      )
+    }
+
+    // Validation function for schedule form
+    const isScheduleFormValid = () => {
+      if (obCallNotRequired) {
+        // For OB call not required flow, both fields are required
+        return selectedObManager !== null && obnrReason.trim() !== ""
+      }
+      // For regular scheduling flow, no additional validation needed (date/time have defaults)
+      return true
+    }
+
     const handleModalConfirm = () => {
+      // Validate form before proceeding
+      if (!isHandoverFormValid()) {
+        return // Don't proceed if form is invalid
+      }
+      
       // Do NOT update the data yet to avoid re-mount that closes the modal
       // Simply show the success toast and advance to the schedule step
       setShowSuccessToast(true)
@@ -491,6 +520,11 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     const handleScheduleConfirm = async () => {
       // Clear previous errors
       setRescheduleReasonError("")
+      
+      // Validate form before proceeding
+      if (!isScheduleFormValid()) {
+        return // Don't proceed if form is invalid
+      }
       
       // Validate reschedule reason if Meet Reschedule is selected
       if (pendingSubStage === "Meet Reschedule" && !rescheduleReason.trim()) {
@@ -522,17 +556,6 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         
         if (obCallNotRequired) {
           // OB call not required flow - go directly to Meet Done
-          if (!selectedObManager) {
-            alert('Please select an onboarding manager.')
-            setIsApiLoading(false)
-            return
-          }
-          
-          if (!obnrReason.trim()) {
-            alert('Please provide a reason.')
-            setIsApiLoading(false)
-            return
-          }
 
           const obNotRequiredPayload = {
             enterprise_id: data.enterpriseId,
@@ -541,7 +564,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             sub_stage: "Meet Done",
             call_required: false,
             notes: obnrReason,
-            ob_manager: selectedObManager.userId
+            ob_manager: selectedObManager!.userId
           }
 
           console.log('Starting combined API calls for handover and OB not required...')
@@ -910,6 +933,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     }) => {
       const [isOpen, setIsOpen] = useState(false)
       const [searchTerm, setSearchTerm] = useState("")
+      const dropdownRef = useRef<HTMLDivElement>(null)
       
       const toggleOption = (option: string) => {
         if (selected.includes(option)) {
@@ -931,9 +955,26 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         setIsOpen(false)
         setSearchTerm("")
       }
+
+      // Handle click outside to close dropdown
+      useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+          if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            handleClose()
+          }
+        }
+
+        if (isOpen) {
+          document.addEventListener('mousedown', handleClickOutside)
+        }
+
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside)
+        }
+      }, [isOpen])
       
       return (
-        <div className="relative z-10">
+        <div className="relative z-[100]" ref={dropdownRef}>
           <div 
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer min-h-[40px] flex flex-wrap items-center gap-1"
             onClick={() => setIsOpen(!isOpen)}
@@ -964,12 +1005,10 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           </div>
           
           {isOpen && (
-            <>
-              <div className="fixed inset-0 z-[59]" onClick={handleClose} />
-              <div 
-                className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-[60] max-h-60"
-                onClick={(e) => e.stopPropagation()}
-              >
+            <div 
+              className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-[100] max-h-60 overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
                 {/* Search Input */}
                 <div className="p-2 border-b border-gray-200">
                   <input
@@ -1015,7 +1054,6 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                   )}
                 </div>
               </div>
-            </>
           )}
         </div>
       )
@@ -1065,7 +1103,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         {/* Handover Details Modal */}
         {showHandoverModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col" style={{ overflow: 'visible' }}>
               {/* Modal Header - Fixed */}
               <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
                 <div>
@@ -1087,7 +1125,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
               </div>
               
               {/* Modal Body - Scrollable */}
-              <div className="px-6 py-4 space-y-6 flex-1 overflow-y-auto">
+              <div className="px-6 py-4 pb-20 space-y-6 flex-1 overflow-y-scroll" style={{ overflowX: 'visible' }}>
                 {!showScheduleForm ? (
                   // Handover Form
                   <>
@@ -1189,7 +1227,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Important Notes*
+                        Important Notes
                       </label>
                       <textarea
                         rows={4}
@@ -1443,12 +1481,12 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
                 </button>
                 <button
                   onClick={showScheduleForm ? handleScheduleConfirm : handleModalConfirm}
-                disabled={isApiLoading}
-                className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 flex items-center gap-2 ${
-                  isApiLoading 
-                    ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'text-white bg-gradient-to-r from-purple-600 to-primary-600 hover:from-purple-700 hover:to-primary-700'
-                }`}
+                  disabled={isApiLoading || (!showScheduleForm && !isHandoverFormValid()) || (showScheduleForm && !isScheduleFormValid())}
+                  className={`px-4 py-2 text-sm font-medium border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 flex items-center gap-2 ${
+                    (isApiLoading || (!showScheduleForm && !isHandoverFormValid()) || (showScheduleForm && !isScheduleFormValid()))
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'text-white bg-gradient-to-r from-purple-600 to-primary-600 hover:from-purple-700 hover:to-primary-700'
+                  }`}
               >
                 {isApiLoading && (
                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

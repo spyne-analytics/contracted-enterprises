@@ -38,7 +38,7 @@ export function RooftopsTableFilters({
   // Filter options - only for API-supported filters
   const filterOptions = {
     region_type: ["All Region", "AMER", "AMEA", "APAC", "EMEA", "OTHERS"],
-    account_type: ["All Type", "AUCTION_PLATFORM", "CAR_RENTAL_LEASING", "D2D", "FRANCHISE_DEALER", "INDEPENDENT_DEALER", "MARKETPLACE", "PARTNER", "OTHERS", "GROUP_DEALER", "INDIVIDUAL_DEALER"],
+    account_type: ["All Type", "GROUP_DEALER", "INDIVIDUAL_DEALER", "AUCTION_PLATFORM", "CAR_RENTAL_LEASING", "MARKETPLACE", "PARTNERS"],
     account_sub_type: ["All Sub Type", "INDEPENDENT_DEALER", "FRANCHISE_DEALER"],
     ae_id: aePocOptions, // Now dynamic from API with name and userId
     sub_stage: ["All Sub Stage", "Meet Pending", "Meet Scheduled", "Meet Done", "Meet Cancelled", "Drop off"]
