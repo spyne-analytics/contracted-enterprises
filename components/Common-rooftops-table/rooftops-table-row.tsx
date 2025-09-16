@@ -1706,7 +1706,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             <span 
               className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap ${getProductBadgeStyles("Converse AI")}`}
             >
-              {displayValue(data.conversationAiPlan)}
+              Converse AI
             </span>
           ) : (
             <span className="text-sm text-gray-500">-</span>
@@ -1731,7 +1731,9 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           
           {/* Media Icons */}
           <div className="flex items-center gap-1">
-            {(data.media && data.media.length > 0) ? data.media.map((media, index) => (
+            {(data.media && data.media.length > 0) ? data.media
+              .filter(media => media !== "ConversationalAI") // Exclude ConversationalAI from Studio AI column
+              .map((media, index) => (
               <div
                 key={`media-${index}`}
                 className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 text-gray-600"
