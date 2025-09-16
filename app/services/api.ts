@@ -2,8 +2,8 @@ import { ApiResponse, ApiRequestPayload, ApiTeamData, RooftopsData } from '../ty
 
 // Client-side API service for making requests to external API
 // Uses hardcoded Bearer token for authentication
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://uat-api.spyne.xyz/console/v1'
-const BEARER_TOKEN = 'eyJhdXRoS2V5IjoiMDQzOGQ2MjAtMDhmOC00MmEyLTk3ZmQtNjdkMzFhODdiZTAyIiwiZGV2aWNlSWQiOiI1ZWE0NDEzZDRjNGU5MzM4NmRjZWIwODIxN2ZiYzJlYiIsImVudGVycHJpc2VfaWQiOiI1MjhhZWY5YzUiLCJ0ZWFtX2lkIjoiYzk2MjRhOTctNCJ9'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.spyne.ai/console/v1'
+const BEARER_TOKEN = 'Bearer eyJhdXRoS2V5IjoiODhkYmQwNGYtZjBkZS00NmMyLWI2YTEtNjE0MzIyY2FjM2MwIiwiZGV2aWNlSWQiOiIxZTJjM2EzODcxZWVhNDFhMjcxMjBkMTJhZmMxMTVhOCIsImVudGVycHJpc2VfaWQiOiJjNjNkNjMxOWIiLCJ0ZWFtX2lkIjoiYWY0NjRhYzQzMyJ9'
 
 /**
  * Client-side API service for fetching contracted teams data
@@ -233,7 +233,7 @@ export class ApiService {
     notes?: string
   }): Promise<{ message: string; error: boolean; code: string; details: any; data: any }> {
     // Use different base URL for this endpoint
-    const url = 'https://uat-api.spyne.xyz/credit/v2/enterprise/team/update-team-sub-stage'
+    const url = 'https://api.spyne.ai/credit/v2/enterprise/team/update-team-sub-stage'
     
     const defaultHeaders = {
       'Content-Type': 'application/json',
@@ -267,7 +267,7 @@ export class ApiService {
   // Get onboarding managers API
   static async getOnboardingManagers(): Promise<{ message: string; error: boolean; code: string; details: any; data: Array<{ name: string; email: string; userId: string }> }> {
     // Use different base URL for this endpoint
-    const url = 'https://uat-api.spyne.xyz/console/v3/contracting/get-enterprise-poc-details?type_of_poc=ob&batchSize=100&offset=1'
+    const url = 'https://api.spyne.ai/console/v3/contracting/get-enterprise-poc-details?type_of_poc=ob&batchSize=100&offset=1'
     
     const defaultHeaders = {
       'Content-Type': 'application/json',
@@ -299,7 +299,7 @@ export class ApiService {
   // Get AE POC names API
   static async getAePocNames(): Promise<{ message: string; error: boolean; code: string; details: any; data: Array<{ name: string; email: string; userId: string }> }> {
     // Use the provided endpoint for AE POC details
-    const url = 'https://uat-api.spyne.xyz/console/v3/contracting/get-enterprise-poc-details?type_of_poc=ae&batchSize=100&offset=1'
+    const url = 'https://api.spyne.ai/console/v3/contracting/get-enterprise-poc-details?type_of_poc=ae&batchSize=100&offset=1'
     
     const defaultHeaders = {
       'Content-Type': 'application/json',
@@ -336,7 +336,7 @@ export class ApiService {
     sub_stage: string
   }): Promise<{ message: string; error: boolean; code: string; details: any; data: any }> {
     // Use different base URL for this endpoint
-    const url = 'https://uat-api.spyne.xyz/credit/v2/enterprise/team/update-team-sub-stage'
+    const url = 'https://api.spyne.ai/credit/v2/enterprise/team/update-team-sub-stage'
     
     const defaultHeaders = {
       'Content-Type': 'application/json',
@@ -376,7 +376,7 @@ export class ApiService {
     notes: string
   }): Promise<{ message: string; error: boolean; code: string; details: any; data: any }> {
     // Use different base URL for this endpoint
-    const url = 'https://uat-api.spyne.xyz/credit/v2/enterprise/team/update-team-sub-stage'
+    const url = 'https://api.spyne.ai/credit/v2/enterprise/team/update-team-sub-stage'
     
     const defaultHeaders = {
       'Content-Type': 'application/json',
@@ -418,7 +418,7 @@ export class ApiService {
     ob_manager: string
   }): Promise<{ message: string; error: boolean; code: string; details: any; data: any }> {
     // Use different base URL for this endpoint
-    const url = 'https://uat-api.spyne.xyz/credit/v2/enterprise/team/update-team-sub-stage'
+    const url = 'https://api.spyne.ai/credit/v2/enterprise/team/update-team-sub-stage'
     
     const defaultHeaders = {
       'Content-Type': 'application/json',
