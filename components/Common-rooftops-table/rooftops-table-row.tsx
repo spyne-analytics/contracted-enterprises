@@ -1923,7 +1923,15 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
             type="button"
             onClick={(e) => {
               e.stopPropagation()
-              window.open(data.contractLink as string, '_blank', 'noopener,noreferrer')
+              const handleOpenContract = () => {
+                if (data.contractLink?.includes('pdf')) {
+                  const cleanUrl = data.contractLink.split('.pdf')[0] + '.pdf';
+                  window.open(cleanUrl, '_blank');
+                } else {
+                  window.open(data.contractLink, '_blank');
+                }
+              };
+              handleOpenContract();
             }}
             className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 focus:outline-none"
             title="Open contract"
