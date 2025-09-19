@@ -151,10 +151,17 @@ export class ApiService {
     contractedOnly?: boolean,
     search?: string
   ): Promise<{ data: RooftopsData[], hasMore: boolean, total: number }> {
+    const defaultFilters = {
+      stage: ["Contract-Initiated", "Contracted"]
+    }
+    
     const payload: ApiRequestPayload = {
       page: 1,
       per_page: 50, // Start with 50 records
-      ...(filters && { filters }),
+      filters: {
+        ...defaultFilters,
+        ...filters
+      },
       ...(contractedOnly ? { contracted_only: true } : {}),
       ...(search && search.trim() !== '' ? { search: search.trim() } : {})
     }
@@ -177,10 +184,17 @@ export class ApiService {
     contractedOnly?: boolean,
     search?: string
   ): Promise<{ data: RooftopsData[], hasMore: boolean, total: number }> {
+    const defaultFilters = {
+      stage: ["Contract-Initiated", "Contracted"]
+    }
+    
     const payload: ApiRequestPayload = {
       page,
       per_page: perPage,
-      ...(filters && { filters }),
+      filters: {
+        ...defaultFilters,
+        ...filters
+      },
       ...(contractedOnly ? { contracted_only: true } : {}),
       ...(search && search.trim() !== '' ? { search: search.trim() } : {})
     }

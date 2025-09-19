@@ -55,6 +55,7 @@ export interface ApiRequestPayload {
     account_sub_type?: string
     ae_id?: string
     sub_stage?: string
+    stage?: string[]
   }
   search?: string
   contracted_only?: boolean
