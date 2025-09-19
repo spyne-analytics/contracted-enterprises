@@ -14,7 +14,7 @@ interface FilterValues {
   account_sub_type: string
   ae_id: string
   sub_stage: string
-  contractedOnly: boolean
+  stage: string[]
 }
 
 // Type options for mapping existing data
@@ -219,6 +219,9 @@ export function RooftopsTable({
     if (filterValues.sub_stage !== "All Sub Stage") {
       filters.sub_stage = filterValues.sub_stage
     }
+    if (filterValues.stage && filterValues.stage.length > 0) {
+      filters.stage = filterValues.stage
+    }
     
     return Object.keys(filters).length > 0 ? filters : undefined
   }
@@ -351,7 +354,7 @@ export function RooftopsTable({
       setLoadingMore(true)
       const nextPage = currentPage + 1
       const filters = getApiFilters()
-      const response = await ApiService.getTeamsPage(nextPage, 50, filters, filterValues.contractedOnly, debouncedSearchValue)
+      const response = await ApiService.getTeamsPage(nextPage, 50, filters, false, debouncedSearchValue)
       
       setApiData(prev => [...prev, ...response.data])
       setHasMore(response.hasMore)
@@ -388,7 +391,7 @@ export function RooftopsTable({
     account_sub_type: "All Sub Type",
     ae_id: "All POC",
     sub_stage: "All Sub Stage",
-    contractedOnly: false
+    stage: ["Contract-Initiated", "Contracted"]
   })
 
   // Fetch initial data from API
@@ -406,7 +409,7 @@ export function RooftopsTable({
         setLoading(true)
         setError(null)
         const filters = getApiFilters()
-        const response = await ApiService.getTeamsWithDefaults(filters, filterValues.contractedOnly, debouncedSearchValue)
+        const response = await ApiService.getTeamsWithDefaults(filters, false, debouncedSearchValue)
         
         // Only update state if request wasn't cancelled
         if (!abortControllerRef.current.signal.aborted) {
@@ -586,16 +589,10 @@ export function RooftopsTable({
   }, [apiData])
 
   const filteredData = useMemo(() => {
-    let filtered = convertedData.filter((item) => {
-      // Only client-side contracted only filter (search is now server-side)
-      const matchesContractedOnly = !filterValues.contractedOnly || item.stage === "Contracted"
-
-      return matchesContractedOnly
-    })
-
-
-    return filtered
-  }, [convertedData, filterValues.contractedOnly])
+    // Since stage filtering is now handled server-side via API, 
+    // we don't need client-side filtering for stage anymore
+    return convertedData
+  }, [convertedData])
 
   // Selection handlers and state (after filteredData is defined)
   const handleSelectAll = (checked: boolean) => {
@@ -949,7 +946,7 @@ export function RooftopsTable({
               ) : filteredData.length === 0 ? (
                 <tr>
                   <td colSpan={31} className="px-3 py-8 text-center text-gray-500">
-                    {searchValue || filterValues.contractedOnly
+                    {searchValue || (filterValues.stage.length < 2)
                       ? "No matching rooftops found"
                       : "No rooftops data available"}
                   </td>

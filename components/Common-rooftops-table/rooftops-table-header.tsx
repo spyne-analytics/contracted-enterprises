@@ -41,6 +41,9 @@ export function RooftopsTableHeader({ isAllSelected, isIndeterminate, onSelectAl
         {/* GD Name column */}
         <HeaderCell className="min-w-[180px]">GD Name</HeaderCell>
         
+        {/* SLA column */}
+        <HeaderCell className="min-w-[180px]">SLA</HeaderCell>
+        
         {/* New column order as requested */}
         <HeaderCell className="min-w-[180px]">Stage</HeaderCell>
         <HeaderCell className="min-w-[180px]">Sub Stage</HeaderCell>

@@ -34,6 +34,7 @@ export interface ApiTeamData {
   plan: string
   conversationAiPlan: string | null
   hasConversationAi: boolean
+  sla: string
 }
 
 export interface ApiResponse {
@@ -58,7 +59,6 @@ export interface ApiRequestPayload {
     stage?: string[]
   }
   search?: string
-  contracted_only?: boolean
 }
 
 // Legacy types for backward compatibility
@@ -115,10 +115,7 @@ export interface RooftopsData {
   contractedDate: string
   contractPeriod: string
   contractLink?: string
-  sla: {
-    status: "On Track" | "Breached"
-    daysBreached?: number
-  }
+  sla: string
   teamId: string
   enterpriseId: string
   products: string[]

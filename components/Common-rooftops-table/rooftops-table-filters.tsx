@@ -9,7 +9,7 @@ interface FilterValues {
   account_sub_type: string
   ae_id: string
   sub_stage: string
-  contractedOnly: boolean
+  stage: string[]
 }
 
 interface RooftopsTableFiltersProps {
@@ -41,7 +41,8 @@ export function RooftopsTableFilters({
     account_type: ["All Type", "GROUP_DEALER", "INDIVIDUAL_DEALER", "AUCTION_PLATFORM", "CAR_RENTAL_LEASING", "MARKETPLACE", "PARTNERS"],
     account_sub_type: ["All Sub Type", "INDEPENDENT_DEALER", "FRANCHISE_DEALER"],
     ae_id: aePocOptions, // Now dynamic from API with name and userId
-    sub_stage: ["All Sub Stage", "Meet Pending", "Meet Scheduled", "Meet Done", "Meet Cancelled", "Drop off"]
+    sub_stage: ["All Sub Stage", "Meet Pending", "Meet Scheduled", "Meet Done", "Meet Cancelled", "Drop off"],
+    stage: ["Contract-Initiated", "Contracted"]
   }
 
   // Fetch AE POC options on component mount
@@ -122,16 +123,16 @@ export function RooftopsTableFilters({
       account_sub_type: "All Sub Type",
       ae_id: "All POC",
       sub_stage: "All Sub Stage",
-      contractedOnly: false
+      stage: ["Contract-Initiated", "Contracted"]
     }
     onFiltersChange(resetFilters)
     setActiveDropdown(null)
   }
 
-  const handleContractedOnlyToggle = () => {
+  const handleStageChange = (selectedStages: string[]) => {
     const newFilters = { 
       ...filterValues, 
-      contractedOnly: !filterValues.contractedOnly
+      stage: selectedStages
     }
     onFiltersChange(newFilters)
   }
@@ -139,7 +140,10 @@ export function RooftopsTableFilters({
 
   // Count active filters (not set to "All" or default values)
   const activeFiltersCount = Object.entries(filterValues).filter(([key, value]) => {
-    if (key === 'contractedOnly') return value === true
+    if (key === 'stage') {
+      const stages = value as string[]
+      return stages.length !== 2 || !stages.includes("Contract-Initiated") || !stages.includes("Contracted")
+    }
     return typeof value === 'string' && !value.startsWith("All")
   }).length
 
@@ -164,25 +168,6 @@ export function RooftopsTableFilters({
 
       {/* Quick Filters - Right Aligned */}
       <div className="flex items-center gap-4">
-        {/* Contracted Only Toggle */}
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-            <span className="font-regular">Contracted Only</span>
-            <div className="relative flex items-center">
-              <input
-                type="checkbox"
-                checked={filterValues.contractedOnly}
-                onChange={handleContractedOnlyToggle}
-                className="sr-only"
-              />
-              <div className={`w-10 h-5 rounded-full transition-colors flex items-center ${filterValues.contractedOnly ? 'bg-primary-500' : 'bg-gray-300'}`}>
-                <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${filterValues.contractedOnly ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
-              </div>
-            </div>
-          </label>
-        </div>
-
-
         {/* Main Filter Dropdown */}
         <div className="relative">
           <button 
@@ -364,6 +349,54 @@ export function RooftopsTableFilters({
                       >
                         {option}
                       </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Stage Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Stage</label>
+              <div className="relative">
+                <button
+                  onClick={() => setActiveDropdown(activeDropdown === 'stage' ? null : 'stage')}
+                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50"
+                >
+                  <span>
+                    {filterValues.stage.length === 2 ? 'Both Stages' : 
+                     filterValues.stage.length === 1 ? filterValues.stage[0] : 
+                     'No Stages Selected'}
+                  </span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`text-gray-400 transition-transform ${activeDropdown === 'stage' ? 'rotate-180' : ''}`}>
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                {activeDropdown === 'stage' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                    {filterOptions.stage.map((option) => (
+                      <div
+                        key={option}
+                        className="px-3 py-2 cursor-pointer hover:bg-gray-50"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const isSelected = filterValues.stage.includes(option)
+                          const newStages = isSelected 
+                            ? filterValues.stage.filter(s => s !== option)
+                            : [...filterValues.stage, option]
+                          handleStageChange(newStages)
+                        }}
+                      >
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={filterValues.stage.includes(option)}
+                            onChange={() => {}}
+                            className="mr-2"
+                          />
+                          {option}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}

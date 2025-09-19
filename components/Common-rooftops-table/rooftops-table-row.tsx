@@ -19,6 +19,17 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     }
     return String(value)
   }
+
+  const formatWithMonths = (value: any): string => {
+    if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
+      return '-'
+    }
+    const numValue = Number(value)
+    if (isNaN(numValue)) {
+      return String(value)
+    }
+    return `${numValue} ${numValue === 1 ? 'month' : 'months'}`
+  }
   const getTypeBadgeStyles = (type: string) => {
     switch (type) {
       case "Group Dealer":
@@ -79,6 +90,16 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     }
   }
 
+  const getSLABadgeStyles = (sla: string) => {
+    if (sla.toLowerCase().includes("on track")) {
+      return "bg-green-100 text-green-800"
+    } else if (sla.toLowerCase().includes("breached")) {
+      return "bg-red-100 text-red-800"
+    } else {
+      return "bg-gray-100 text-gray-800"
+    }
+  }
+
   const getMediaIcon = (media: string) => {
     switch (media) {
       case "Images":
@@ -122,16 +143,6 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
     return "bg-gray-100 text-gray-800"
   }
 
-  const getSLABadgeStyles = (status: "On Track" | "Breached") => {
-    switch (status) {
-      case "On Track":
-        return "bg-green-100 text-green-800"
-      case "Breached":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
 
   const ProgressBar = ({ progress }: { progress: number }) => (
     <div className="flex items-center gap-2 min-w-max">
@@ -1713,6 +1724,13 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
         <span className="text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{displayValue(data.gdName)}</span>
       </td>
 
+      {/* SLA */}
+      <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap ${getSLABadgeStyles(data.sla)}`}>
+          {displayValue(data.sla)}
+        </span>
+      </td>
+
       {/* Stage */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 min-w-[180px]">
         <StageBadge stage={data.stage} />
@@ -1770,7 +1788,7 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
           {/* Media Icons */}
           <div className="flex items-center gap-1">
             {(data.media && data.media.length > 0) ? data.media
-              .filter(media => media !== "ConversationalAI") // Exclude ConversationalAI from Studio AI column
+              .filter(media => media !== "Conversational AI" && media !== "Advance Tools") // Exclude Conversational AI and Advance Tools from Studio AI column
               .map((media, index) => (
               <div
                 key={`media-${index}`}
@@ -1849,14 +1867,12 @@ export function RooftopsTableRow({ data, onRooftopSelect, onRooftopUpdate, isSel
 
       {/* Payment Frequency */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-md h-[22px] items-center whitespace-nowrap bg-gray-100 text-gray-800">
-          {displayValue(data.paymentsFrequency)}
-        </span>
+        <span className="text-sm text-gray-900">{formatWithMonths(data.paymentsFrequency)}</span>
       </td>
 
       {/* Lock In Period */}
       <td className="px-3 py-2 border-r border-gray-100 h-9 w-max whitespace-nowrap">
-        <span className="text-sm text-gray-900">{displayValue(data.lockinPeriod)}</span>
+        <span className="text-sm text-gray-900">{formatWithMonths(data.lockinPeriod)}</span>
       </td>
 
       {/* AE POCs */}

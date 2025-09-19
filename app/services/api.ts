@@ -127,10 +127,7 @@ export class ApiService {
       contractedDate: this.formatDate(item.contracted_date), // Contracted Date
       contractPeriod: item.contract_duration.toString(), // Contracted Period
       contractLink: item.contract_link, // Contract Link
-      sla: {
-        status: "On Track", // Default value as not provided in API
-        daysBreached: undefined
-      },
+      sla: item.sla, // SLA from API
       teamId: item.team_id, // Team ID
       enterpriseId: item.enterprise_id, // Enterprise ID
       products: item.products, // Products array for Studio AI icons
@@ -162,7 +159,6 @@ export class ApiService {
         ...defaultFilters,
         ...filters
       },
-      ...(contractedOnly ? { contracted_only: true } : {}),
       ...(search && search.trim() !== '' ? { search: search.trim() } : {})
     }
 
@@ -195,7 +191,6 @@ export class ApiService {
         ...defaultFilters,
         ...filters
       },
-      ...(contractedOnly ? { contracted_only: true } : {}),
       ...(search && search.trim() !== '' ? { search: search.trim() } : {})
     }
 
